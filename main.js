@@ -187,12 +187,7 @@ function stepAimPoint(dt) {
 
     if (Math.abs(currentAmplitude) <= gameObjects.target.size / 2) {
         renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.blue, size: gameObjects.aimPoint.size })
-        
         if (clickDetected) {
-            if (gameObjects.score > gameObjects.record) {
-                gameObjects.record = gameObjects.score;
-                localStorage.setItem('record', String(gameObjects.record))
-            }
             //console.log("Goal!!")
             gameObjects.objects.push(
                 {
@@ -214,6 +209,10 @@ function stepAimPoint(dt) {
             );
             resouceSoundPlay(sounds['hitSuccess']);
             gameObjects.score++;
+            if (gameObjects.score > gameObjects.record) {
+                gameObjects.record = gameObjects.score;
+                localStorage.setItem('record', String(gameObjects.record))
+            }
         }
     }
     else {
