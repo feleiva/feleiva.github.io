@@ -1,0 +1,512 @@
+// Constants
+var mainCanvasName = "mainCamvas";
+var targetPosition = {
+    x: 400,
+    y: 450
+};
+var lastFrameTime;
+var main2dContext;
+var clickDetected = false;
+var aimPointSettup = {
+    rotationAngularSpeed: 1,            // 1 rotation every 2*PI seconds
+    maxAmplitude: 50,           // Max distance to target
+    amplitudePhase: 3.0           // 1 full cycle every 2*PI seconds
+};
+
+const commonColors = {
+    red: { r: 255, g: 0, b: 0, a: 255, str: "rgba(255,0,0,1)" },
+    green: { r: 0, g: 255, b: 0, a: 255, str: "rgba(0,255,0,1)" },
+    blue: { r: 0, g: 0, b: 255, a: 255, str: "rgba(0,0,255,1)" },
+    white: { r: 255, g: 255, b: 255, a: 255, str: "rgba(255,255,255,1)" },
+    black: { r: 0, g: 0, b: 0, a: 255, str: "rgba(0,0,0,1)" },
+}
+
+
+var targetSetup = {
+    targetSize: 30
+};
+
+
+var loadingSetup = {
+    preload: {
+        label: "Click To Start",
+        pos: { x: 200, y: 360 },
+        size: 60,
+        color: { r: 0, g: 255, b: 0, a: 255 },
+        align: "center"
+    },
+
+    title: {
+        label: "Loading",
+        pos: { x: 360, y: 360 },
+        size: 60,
+        color: { r: 0, g: 255, b: 0, a: 255 },
+        align: "center"
+    },
+}
+
+var hudSetup = {
+    score: {
+        pos: { x: 590, y: 50 },
+        size: 30,
+        color: commonColors.black,
+        align: "end",
+        digits: 5
+    },
+    record: {
+        pos: { x: 0, y: 50 },
+        size: 30,
+        color: commonColors.red,
+        align: "start",
+        digits: 5
+    },
+    lives: {
+        pos: { x: 590, y: 80 },
+        size: 20,
+        color: commonColors.blue,
+        align: "start",
+        label: "Lives: ",
+        digits: "2"
+    }
+}
+
+
+// Game Objects
+const GAMEOBJECTTYPE = Object.freeze({
+    GOT_TARGET: 1,
+    GOT_AIMPOINT: 2,
+    GOT_IMAGE: 2,
+    GOT_TEXT: 3
+});
+
+var gameObjects = {
+    target: {},
+    aimPoint: {},
+    score: 0,
+    lives: 10,
+    record: 0,
+    // Add other generic items here
+    objects: []
+};
+
+const GAMESTATES = Object.freeze({
+    GS_WAIT_FOR_INPUT: 0,
+    GS_NOT_STARTED: 1,
+    GS_LOADING: 2,
+    GS_IN_PROGRESS: 3,
+    GS_FINISHED: 4
+});
+var gameState = GAMESTATES.GS_WAIT_FOR_INPUT;
+
+const RENDERACTIONTYPE = Object.freeze({
+    RAT_CLEAR: 0,
+    RAT_CLEAR_COLOR: 1,
+    RAT_CLEAR_NONE: 2,
+    RAT_IMAGE_AT: 3,
+    RAT_POINT_AT: 4,
+    RAT_TEXT_AT: 5
+});
+
+var renderActions = {
+    clearAction: {},
+    actions: []
+};
+
+var images = {
+    "background-720": {
+        image: null,
+        //loaded: false
+    }
+}
+
+var sounds = {
+    "hitSuccess": {
+        filePath: "sound/HitSuccess.mp3",
+        loop: false,
+        volume: 1.0,
+        buffer: null
+    },
+    "hitFail": {
+        filePath: "sound/HitFail.mp3",
+        loop: false,
+        volume: 1.0,
+        buffer: null
+    },
+    "inGameMusic": {
+        filePath: "sound/ImABeleiver.mp3",
+        loop: true,
+        volume: 0.1,
+        buffer: null
+    }
+}
+
+
+/// Utilitary functinos
+function colorToRGBA(color) {
+    // TODO: Needs validations!!!
+    if (!("str" in color) || color.str == "")
+        color.str = "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a / 255 + ")"
+    return color.str;
+}
+
+/// Even Handling
+function onClick() {
+    clickDetected = true;
+}
+
+
+// Step for different object types
+function stepTarget(dt) {
+
+    renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, id: "background-720" })
+    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size })
+}
+
+function stepAimPoint(dt) {
+    scoreFactor = 1 + (0.05) * gameObjects.score;
+
+    gameObjects.aimPoint.angle += aimPointSettup.rotationAngularSpeed * dt * scoreFactor;
+    gameObjects.aimPoint.amplitudPhase += aimPointSettup.amplitudePhase * dt * scoreFactor;
+
+    currentAmplitude = aimPointSettup.maxAmplitude * Math.sin(gameObjects.aimPoint.amplitudPhase);
+    //currentAmplitude = gameObjects.target.size/2 +1
+
+    gameObjects.aimPoint.pos.x = gameObjects.target.pos.x - currentAmplitude * Math.sin(gameObjects.aimPoint.angle);
+    gameObjects.aimPoint.pos.y = gameObjects.target.pos.y + currentAmplitude * Math.cos(gameObjects.aimPoint.angle);
+
+    if (Math.abs(currentAmplitude) <= gameObjects.target.size / 2) {
+        renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.blue, size: gameObjects.aimPoint.size })
+        if (clickDetected) {
+            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: commonColors.green }
+            if (gameObjects.score > gameObjects.record) {
+                gameObjects.record = gameObjects.score;
+                localStorage.setItem('record', String(gameObjects.record))
+            }
+            //console.log("Goal!!")
+            gameObjects.objects.push(
+                {
+                    type: GAMEOBJECTTYPE.GOT_TEXT,
+                    label: "Great!!",
+                    pos: { x: 730, y: 360 },
+                    color: structuredClone(commonColors.green),
+                    size: 50,
+                    align: "start",
+                    behaviorQueue: [
+                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
+                        { type: BEHAVIORTTYPES.BT_BLOCK },
+                        { type: BEHAVIORTTYPES.BT_MOVE_ACCEL, accel: { x: 0, y: -200 }, time: 1.0 },
+                        { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
+                        { type: BEHAVIORTTYPES.BT_BLOCK },
+                        { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+                    ]
+                }
+            );
+            resouceSoundPlay(sounds['hitSuccess']);
+            gameObjects.score++;
+        }
+    }
+    else {
+        renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
+        if (clickDetected) {
+            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: commonColors.red }
+            //console.log("Fail " + Math.abs(currentAmplitude))
+            gameObjects.objects.push(
+                {
+                    type: GAMEOBJECTTYPE.GOT_TEXT,
+                    label: "Miss!",
+                    pos: { x: 730, y: 360 },
+                    color: structuredClone(commonColors.red),
+                    size: 50,
+                    align: "start",
+                    behaviorQueue: [
+                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
+                        { type: BEHAVIORTTYPES.BT_BLOCK },
+                        { type: BEHAVIORTTYPES.BT_MOVE_ACCEL, accel: { x: 0, y: 150 }, time: 1.0 },
+                        { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
+                        { type: BEHAVIORTTYPES.BT_BLOCK },
+                        { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+                    ]
+                }
+            );
+            gameObjects.lives--;
+            resouceSoundPlay(sounds['hitFail']);
+            if (gameObjects.lives <= 0) {
+                gameObjects.objects.push(
+                    {
+                        type: GAMEOBJECTTYPE.GOT_TEXT,
+                        label: "FAIL",
+                        pos: { x: 300, y: 360 },
+                        color: structuredClone(commonColors.red),
+                        size: 100,
+                        align: "center",
+                        behaviorQueue: [
+                        ]
+                    }
+                );
+                gameObjects.objects.push(
+                    {
+                        type: GAMEOBJECTTYPE.GOT_TEXT,
+                        label: "Press F5 to restart",
+                        pos: { x: 300, y: 420 },
+                        color: structuredClone(commonColors.red),
+                        size: 30,
+                        align: "center",
+                        behaviorQueue: [
+                        ]
+                    }
+                );
+                gameState = GAMESTATES.GS_FINISHED;
+            }
+
+        }
+    }
+}
+
+function stepHud(dt) {
+    renderActions.actions.push(
+        {
+            type: RENDERACTIONTYPE.RAT_TEXT_AT,
+            text: ("0000000000000" + String(gameObjects.score)).slice(-hudSetup.score.digits),
+            pos: hudSetup.score.pos,
+            color: hudSetup.score.color,
+            size: hudSetup.score.size,
+            align: hudSetup.score.align
+        });
+    renderActions.actions.push(
+        {
+            type: RENDERACTIONTYPE.RAT_TEXT_AT,
+            text: ("0000000000000" + String(gameObjects.record)).slice(-hudSetup.record.digits),
+            pos: hudSetup.record.pos,
+            color: hudSetup.record.color,
+            size: hudSetup.record.size,
+            align: hudSetup.record.align
+        });
+    renderActions.actions.push(
+        {
+            type: RENDERACTIONTYPE.RAT_TEXT_AT,
+            text: hudSetup.lives.label + ("00000" + String(gameObjects.lives)).slice(-hudSetup.lives.digits),
+            pos: hudSetup.lives.pos,
+            color: hudSetup.lives.color,
+            size: hudSetup.lives.size,
+            align: hudSetup.lives.align
+        });
+}
+
+function stepObjects(dt) {
+    for (let i = 0; i < gameObjects.objects.length;) {
+        theObject = gameObjects.objects[i];
+        shouldPop = stepBehaviors(theObject, dt);
+        if (shouldPop) {
+            gameObjects.objects.splice(i, 1);
+            continue;
+        }
+        else
+            i++;
+
+        switch (theObject.type) {
+            case GAMEOBJECTTYPE.GOT_TEXT:
+                renderActions.actions.push(
+                    {
+                        type: RENDERACTIONTYPE.RAT_TEXT_AT,
+                        text: theObject.label,
+                        pos: theObject.pos,
+                        color: theObject.color,
+                        size: theObject.size,
+                        align: theObject.align
+                    });
+                break;
+            case GAMEOBJECTTYPE.GOT_IMAGE:
+                renderActions.actions.push(
+                    {
+                        type: RENDERACTIONTYPE.RAT_IMAGE_AT,
+                        pos: theObject.pos,
+                        id: theObject.id
+                    });
+                break;
+        }
+    }
+}
+
+function renderClear(clearObject) {
+    switch (clearObject.type) {
+        case RENDERACTIONTYPE.RAT_CLEAR:
+            main2dContext.context.clearRect(0, 0, main2dContext.width, main2dContext.height);
+            break;
+        case RENDERACTIONTYPE.RAT_CLEAR_COLOR:
+            main2dContext.context.fillStyle = colorToRGBA(clearObject.color)
+            main2dContext.context.rect(0, 0, main2dContext.width, main2dContext.height);
+            main2dContext.context.fill();
+            break;
+        case RENDERACTIONTYPE.RAT_CLEAR_NONE:
+            break;
+    }
+}
+
+function renderAction(renderAction) {
+    switch (renderAction.type) {
+        case RENDERACTIONTYPE.RAT_POINT_AT:
+            // Reference for optimal draw many pixels (particles) https://stackoverflow.com/questions/7812514/drawing-a-dot-on-html5-canvas
+            main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
+            main2dContext.context.beginPath();
+            main2dContext.context.arc(renderAction.pos.x, renderAction.pos.y, renderAction.size / 2, 0, 2 * Math.PI, true);
+            main2dContext.context.closePath();
+            main2dContext.context.fill();
+            break;
+        case RENDERACTIONTYPE.RAT_TEXT_AT: // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text
+            main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
+            main2dContext.context.font = renderAction.size + "px Orbitron";
+            main2dContext.context.textAlight = renderAction.align;
+            main2dContext.context.fillText(renderAction.text, renderAction.pos.x, renderAction.pos.y);
+            break;
+        case RENDERACTIONTYPE.RAT_IMAGE_AT: // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+            main2dContext.context.drawImage(images[renderAction.id].image, renderAction.pos.x, renderAction.pos.y);
+            break;
+    }
+}
+
+
+/// Main Game loop
+function step(curentTime) {
+    if (!lastFrameTime) lastFrameTime = curentTime;
+    var dt = (curentTime - lastFrameTime) / 1000; // current time is in miliseconds
+    lastFrameTime = curentTime;
+
+    //// Run game logic 
+    switch (gameState) {
+        case GAMESTATES.GS_WAIT_FOR_INPUT:
+            if (clickDetected) {
+                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+                gameState = GAMESTATES.GS_NOT_STARTED;
+            }
+            else {
+                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+                renderActions.actions.push(
+                    {
+                        type: RENDERACTIONTYPE.RAT_TEXT_AT,
+                        text:loadingSetup.preload.label,
+                        pos: loadingSetup.preload.pos,
+                        color: loadingSetup.preload.color,
+                        size: loadingSetup.preload.size,
+                        align: loadingSetup.preload.align
+                    });
+            }
+            break;
+        case GAMESTATES.GS_NOT_STARTED:
+            // Init Audio system, can only do this once the user has interacted
+            resourceSoundInit();
+            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+
+            for (const imageId in images) {
+                images[imageId].image = document.getElementById(imageId)
+                //images[imageId].loaded = false;
+                //images[imageId].image.addEventListener("load", function () {
+                //    images[imageId].loaded = true;
+                //  });
+            }
+            for (const soundId in sounds) {
+                resouceSoundLoad(sounds[soundId]);
+            }
+
+            gameState = GAMESTATES.GS_LOADING;
+            break;
+        case GAMESTATES.GS_LOADING:
+            countTotal = 0;
+            countReady = 0;
+
+            for (const imageId in images) {
+                countTotal++;
+                if (images[imageId].image.complete)
+                    countReady++
+            }
+
+            for (const soundId in sounds) {
+                countTotal++;
+                if (sounds[soundId].buffer)
+                    countReady++
+            }
+
+            if (countTotal == countReady) {
+                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+
+                // Create the game objects for the game
+                gameObjects.target = { type: GAMEOBJECTTYPE.GOT_TARGET, pos: { x: targetPosition.x, y: targetPosition.y }, color: { r: 200, g: 0, b: 0, a: 255 }, size: targetSetup.targetSize };
+                gameObjects.aimPoint = { type: GAMEOBJECTTYPE.GOT_AIMPOINT, pos: { x: targetPosition.x + 50, y: targetPosition.y + 50 }, color: { r: 0, g: 200, b: 0, a: 255 }, size: 10, angle: 0, amplitudPhase: 0 }
+                gameObjects.score = 0;
+                gameObjects.record = localStorage.getItem('record') ? parseInt(localStorage.getItem('record')) : 0;
+
+                // Start Ingame Music
+                resouceSoundPlay(sounds['inGameMusic']);
+
+                gameState = GAMESTATES.GS_IN_PROGRESS;
+            }
+            else {
+                greyLevel = Math.trunc((255 / countTotal) * countReady)
+                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: { r: greyLevel, g: greyLevel, b: greyLevel, a: 255 } }
+            }
+
+            renderActions.actions.push(
+                {
+                    type: RENDERACTIONTYPE.RAT_TEXT_AT,
+                    text: loadingSetup.title.label,
+                    pos: loadingSetup.title.pos,
+                    color: loadingSetup.title.color,
+                    size: loadingSetup.title.size,
+                    align: loadingSetup.title.align
+                });
+
+            break;
+        case GAMESTATES.GS_IN_PROGRESS:
+            stepTarget(dt);
+            stepAimPoint(dt);
+            stepHud(dt);
+            stepObjects(dt);
+            break;
+        case GAMESTATES.GS_FINISHED:
+            stepTarget(dt);
+            stepHud(dt);
+            stepObjects(dt);
+            break;
+    }
+
+    // Clear the click flag 
+    clickDetected = false
+
+    //// Render
+    renderClear(renderActions.clearAction)
+    for (ra of renderActions.actions) {
+        renderAction(ra)
+    }
+    renderActions.clearAction = {};
+    renderActions.actions = [];
+
+    // Schedule running this function again
+    window.requestAnimationFrame(step);
+}
+
+
+function main() {
+    // Detect the main canvas properties and run some validations
+    const canvasElement = document.getElementById(mainCanvasName);
+
+    if (!canvasElement) {
+        alert("The game requieres a canvas named " + mainCanvasName);
+        return;
+    }
+
+    main2dContext = {
+        context: canvasElement.getContext("2d"),
+        width: canvasElement.width,
+        height: canvasElement.height
+    }
+
+    // Eveything is ok, prepare to run the game then register the input detection and trigger the game loop
+    gameState = GAMESTATES.GS_WAIT_FOR_INPUT;
+    window.addEventListener(
+        "mousedown", // /Mouse down is more acurate than click, which triggers on mouse up
+        onClick,
+        true
+    )
+    window.requestAnimationFrame(step);
+}
+
