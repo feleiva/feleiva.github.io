@@ -30,7 +30,7 @@ var targetSetup = {
 var loadingSetup = {
     preload: {
         label: "Click To Start",
-        pos: { x: 200, y: 360 },
+        pos: { x: 100, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
         align: "center"
@@ -38,7 +38,7 @@ var loadingSetup = {
 
     title: {
         label: "Loading",
-        pos: { x: 360, y: 360 },
+        pos: { x: 200, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
         align: "center"
@@ -115,25 +115,33 @@ var renderActions = {
 var images = {
     "background-720": {
         image: null,
+        path: "img/background-720.jpg",
+        size: {x: 1280, y: 720},
+        //loaded: false
+    },
+    "tail": {
+        image: null,
+        path: "img/tail.png",
+        size: {x: 146, y: 159},
         //loaded: false
     }
 }
 
 var sounds = {
     "hitSuccess": {
-        filePath: "sound/HitSuccess.mp3",
+        filePath: "sound/HitSuccess.ogg",
         loop: false,
         volume: 1.0,
         buffer: null
     },
     "hitFail": {
-        filePath: "sound/HitFail.mp3",
+        filePath: "sound/HitFail.ogg",
         loop: false,
         volume: 1.0,
         buffer: null
     },
     "inGameMusic": {
-        filePath: "sound/ImABeleiver.mp3",
+        filePath: "sound/ImABeleiver.ogg",
         loop: true,
         volume: 0.1,
         buffer: null
@@ -175,10 +183,12 @@ function stepAimPoint(dt) {
     gameObjects.aimPoint.pos.x = gameObjects.target.pos.x - currentAmplitude * Math.sin(gameObjects.aimPoint.angle);
     gameObjects.aimPoint.pos.y = gameObjects.target.pos.y + currentAmplitude * Math.cos(gameObjects.aimPoint.angle);
 
+    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, id: "tail" })
+
     if (Math.abs(currentAmplitude) <= gameObjects.target.size / 2) {
         renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.blue, size: gameObjects.aimPoint.size })
+        
         if (clickDetected) {
-            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: commonColors.green }
             if (gameObjects.score > gameObjects.record) {
                 gameObjects.record = gameObjects.score;
                 localStorage.setItem('record', String(gameObjects.record))
@@ -236,7 +246,7 @@ function stepAimPoint(dt) {
                     {
                         type: GAMEOBJECTTYPE.GOT_TEXT,
                         label: "FAIL",
-                        pos: { x: 300, y: 360 },
+                        pos: { x: 200, y: 360 },
                         color: structuredClone(commonColors.red),
                         size: 100,
                         align: "center",
@@ -248,7 +258,7 @@ function stepAimPoint(dt) {
                     {
                         type: GAMEOBJECTTYPE.GOT_TEXT,
                         label: "Press F5 to restart",
-                        pos: { x: 300, y: 420 },
+                        pos: { x: 150, y: 420 },
                         color: structuredClone(commonColors.red),
                         size: 30,
                         align: "center",
@@ -398,11 +408,16 @@ function step(curentTime) {
             renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
 
             for (const imageId in images) {
-                images[imageId].image = document.getElementById(imageId)
-                //images[imageId].loaded = false;
-                //images[imageId].image.addEventListener("load", function () {
+                //images[imageId].image = document.getElementById(imageId)
+                ///images[imageId].loaded = false;
+                ///images[imageId].image.addEventListener("load", function () {
+                ///    images[imageId].loaded = true;
+                ///  });
+                images[imageId].image = new Image();
+                //images[imageId].image.onload = function(){
                 //    images[imageId].loaded = true;
-                //  });
+                //};
+                images[imageId].image.src = images[imageId].path;
             }
             for (const soundId in sounds) {
                 resouceSoundLoad(sounds[soundId]);
