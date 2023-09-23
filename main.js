@@ -428,16 +428,21 @@ function step(curentTime) {
             countTotal = 0;
             countReady = 0;
 
+            var missing=""
             for (const imageId in images) {
                 countTotal++;
                 if (images[imageId].image.complete)
                     countReady++
+                else
+                    missing += images[imageId].path;
             }
 
             for (const soundId in sounds) {
                 countTotal++;
                 if (sounds[soundId].buffer)
                     countReady++
+                else
+                    missing += sounds[soundId].filePath;
             }
 
             if (countTotal == countReady) {
@@ -461,7 +466,7 @@ function step(curentTime) {
 
             renderActions.actions.push(
                 {
-                    type: RENDERACTIONTYPE.RAT_TEXT_AT,
+                    type: RENDERACTIONTYPE.RAT_TEXT_AT + missing,
                     text: loadingSetup.title.label,
                     pos: loadingSetup.title.pos,
                     color: loadingSetup.title.color,
