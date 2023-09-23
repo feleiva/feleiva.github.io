@@ -256,8 +256,8 @@ function stepAimPoint(dt) {
                 gameObjects.objects.push(
                     {
                         type: GAMEOBJECTTYPE.GOT_TEXT,
-                        label: "Press F5 to restart",
-                        pos: { x: 150, y: 420 },
+                        label: "Reload to restart",
+                        pos: { x: 190, y: 420 },
                         color: structuredClone(commonColors.red),
                         size: 30,
                         align: "center",
