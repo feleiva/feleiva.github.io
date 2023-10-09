@@ -114,7 +114,6 @@ function stepBehaviors(behaviorObject, dt) {
                     behaviorInstance._elapseTime = 0;
                     if (! ("vel" in behaviorInstance))
                         behaviorInstance.vel= {x: 0, y: 0}
-
                 }
                 else
                     behaviorInstance._elapseTime += dt;
@@ -148,6 +147,7 @@ function stepBehaviors(behaviorObject, dt) {
                     behaviorInstance._elapseTime += dt;
                 if (behaviorInstance._elapseTime >= behaviorInstance.time) {
                     shouldPop = true;
+                    return true;
                 }
                 else
                     return false;

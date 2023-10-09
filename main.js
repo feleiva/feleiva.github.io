@@ -1,7 +1,7 @@
 // Constants
 var mainCanvasName = "mainCamvas";
 var targetPosition = {
-    x: 400,
+    x: 700,
     y: 450
 };
 var lastFrameTime;
@@ -28,9 +28,12 @@ var targetSetup = {
 
 
 var loadingSetup = {
+    background: {
+        image: "outgame-background-720"
+    },
     preload: {
         label: "Click To Start",
-        pos: { x: 100, y: 360 },
+        pos: { x: 500, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
         align: "center"
@@ -38,7 +41,7 @@ var loadingSetup = {
 
     title: {
         label: "Loading",
-        pos: { x: 200, y: 360 },
+        pos: { x: 500, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
         align: "center"
@@ -47,7 +50,7 @@ var loadingSetup = {
 
 var hudSetup = {
     score: {
-        pos: { x: 590, y: 50 },
+        pos: { x: 1050, y: 50 },
         size: 30,
         color: commonColors.black,
         align: "end",
@@ -61,7 +64,7 @@ var hudSetup = {
         digits: 5
     },
     lives: {
-        pos: { x: 590, y: 80 },
+        pos: { x: 1050, y: 80 },
         size: 20,
         color: commonColors.blue,
         align: "start",
@@ -75,8 +78,9 @@ var hudSetup = {
 const GAMEOBJECTTYPE = Object.freeze({
     GOT_TARGET: 1,
     GOT_AIMPOINT: 2,
-    GOT_IMAGE: 2,
-    GOT_TEXT: 3
+    GOT_IMAGE: 3,
+    GOT_TEXT: 4,
+    GOT_GIF: 5
 });
 
 var gameObjects = {
@@ -113,9 +117,15 @@ var renderActions = {
 };
 
 var images = {
-    "background-720": {
+    "outgame-background-720": {
         image: null,
-        path: "img/background-720.jpg",
+        path: "img/outgame-background.png",
+        size: {x: 1280, y: 720},
+        //loaded: false
+    },
+    "ingame-background-720": {
+        image: null,
+        path: "img/ingame-background.png",
         size: {x: 1280, y: 720},
         //loaded: false
     },
@@ -124,7 +134,13 @@ var images = {
         path: "img/tail.png",
         size: {x: 146, y: 159},
         //loaded: false
-    }
+    },
+    "hitReaction": {
+        image: null,
+        path: "img/hitReaction.gif",
+        size: {x: 200, y: 200},
+        //loaded: false
+    },
 }
 
 var sounds = {
@@ -157,6 +173,12 @@ function colorToRGBA(color) {
     return color.str;
 }
 
+/// Utilitary functinos
+function colorToAlpha01(color) {
+    // TODO: Needs validations!!!
+    return  color.a / 255;
+}
+
 /// Even Handling
 function onClick() {
     clickDetected = true;
@@ -167,7 +189,7 @@ function onClick() {
 function stepTarget(dt) {
 
     renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, id: "background-720" })
+    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, id: "ingame-background-720" })
     renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size })
 }
 
@@ -202,6 +224,22 @@ function stepAimPoint(dt) {
                         { type: BEHAVIORTTYPES.BT_BLOCK },
                         { type: BEHAVIORTTYPES.BT_MOVE_ACCEL, accel: { x: 0, y: -200 }, time: 1.0 },
                         { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
+                        { type: BEHAVIORTTYPES.BT_BLOCK },
+                        { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+                    ]
+                }
+            );
+            gameObjects.objects.push(
+                {
+                    type: GAMEOBJECTTYPE.GOT_GIF,
+                    id: "hitReaction",
+                    pos: { x: -200, y: 100 },
+                    color: structuredClone(commonColors.black),
+                    size: 1, // factor 1
+                    behaviorQueue: [ // this gif last 2.5 seconds
+                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 110, y: 100 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
+                        { type: BEHAVIORTTYPES.BT_WAIT, time: 2.0 },
+                        { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.5 },
                         { type: BEHAVIORTTYPES.BT_BLOCK },
                         { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
                     ]
@@ -307,6 +345,13 @@ function stepObjects(dt) {
         theObject = gameObjects.objects[i];
         shouldPop = stepBehaviors(theObject, dt);
         if (shouldPop) {
+            switch (theObject.type) {
+                case GAMEOBJECTTYPE.GOT_GIF:
+                    theObject.imgDiv.remove();
+                    break;
+                default:
+                    break;
+            }
             gameObjects.objects.splice(i, 1);
             continue;
         }
@@ -332,6 +377,19 @@ function stepObjects(dt) {
                         pos: theObject.pos,
                         id: theObject.id
                     });
+                break;
+            case GAMEOBJECTTYPE.GOT_GIF:
+                if (!("imgDiv" in theObject))
+                {
+                    theObject.imgDiv = document.createElement('div');
+                    theObject.imgDiv.style.cssText = "position:absolute;top:" + theObject.pos.y + "px;left:" + theObject.pos.x + "px;width:" + images[theObject.id].size.x + "px;height:" + images[theObject.id].size.y + "px;opacity:" + colorToAlpha01(theObject.color) + ";z-index:100;background:#000";
+                    document.body.appendChild(theObject.imgDiv);
+                    theObject.imgDiv.appendChild(images[theObject.id].image)
+                }
+                else
+                {
+                    theObject.imgDiv.style.cssText = "position:absolute;top:" + theObject.pos.y + "px;left:"  + theObject.pos.x + "px;width:" + images[theObject.id].size.x + "px;height:" + images[theObject.id].size.y + "px;opacity:" + colorToAlpha01(theObject.color) + ";z-index:100;background:#000";
+                }
                 break;
         }
     }
@@ -363,9 +421,12 @@ function renderAction(renderAction) {
             main2dContext.context.fill();
             break;
         case RENDERACTIONTYPE.RAT_TEXT_AT: // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text
-            main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
             main2dContext.context.font = renderAction.size + "px Orbitron";
             main2dContext.context.textAlight = renderAction.align;
+            main2dContext.context.strokeStyle = 'black';
+            main2dContext.context.lineWidth = 1;
+            main2dContext.context.strokeText(renderAction.text, renderAction.pos.x, renderAction.pos.y);
+            main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
             main2dContext.context.fillText(renderAction.text, renderAction.pos.x, renderAction.pos.y);
             break;
         case RENDERACTIONTYPE.RAT_IMAGE_AT: // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
