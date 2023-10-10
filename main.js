@@ -575,6 +575,7 @@ function step(curentTime) {
                 renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
                 resouceSoundPlay(sounds['outGameMusic']);
                 resouceSoundStop(sounds['inGameMusic']);
+                gameObjects.objects = [];
                 gameState = GAMESTATES.GS_HOME_SCREEN;
             }
             else {
