@@ -162,26 +162,34 @@ var sounds = {
     "hitSuccess": {
         filePath: "sound/HitSuccess.ogg",
         loop: false,
+        singleInstance: false,
         volume: 1.0,
-        buffer: null
+        buffer: null,
+        soundNode: null
     },
     "hitFail": {
         filePath: "sound/HitFail.ogg",
         loop: false,
+        singleInstance: false,
         volume: 1.0,
-        buffer: null
+        buffer: null,
+        soundNode: null
     },
     "outGameMusic": {
         filePath: "sound/IAmOnMyWay.ogg",
         loop: true,
+        singleInstance: true,
         volume: 0.1,
-        buffer: null
+        buffer: null,
+        soundNode: null
     },
     "inGameMusic": {
         filePath: "sound/ImABeleiver.ogg",
         loop: true,
+        singleInstance: true,
         volume: 0.1,
-        buffer: null
+        buffer: null,
+        soundNode: null
     }
 }
 
@@ -550,6 +558,7 @@ function step(curentTime) {
             gameObjects.lives = inGameSetup.lives;
 
             // Start Ingame Music
+            resouceSoundStop(sounds['outGameMusic']);
             resouceSoundPlay(sounds['inGameMusic']);
             gameState = GAMESTATES.GS_IN_GAME;
             break;
@@ -564,6 +573,8 @@ function step(curentTime) {
             stepHud(dt);
             if (clickDetected) {
                 renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+                resouceSoundPlay(sounds['outGameMusic']);
+                resouceSoundStop(sounds['inGameMusic']);
                 gameState = GAMESTATES.GS_HOME_SCREEN;
             }
             else {

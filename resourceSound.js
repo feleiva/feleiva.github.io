@@ -32,6 +32,19 @@ function resouceSoundLoad(soundInfo) {
     request.send();
 }
 
+function resouceSoundStop(soundInfo) {
+    if (!soundContext)
+        console.log('ResourceSound: No audio context when playing audio file: ' + soundInfo.filePath);
+
+    if (soundInfo.soundNode)
+    {
+        soundInfo.soundNode.stop();  
+        soundInfo.soundNode = null;
+    }
+    else
+        console.log('ResourceSound: Audio not playing when stopping audio file: ' + soundInfo.filePath);
+}
+
 function resouceSoundPlay(soundInfo) {
     if (!soundContext)
         console.log('ResourceSound: No audio context when playing audio file: ' + soundInfo.filePath);
@@ -39,15 +52,25 @@ function resouceSoundPlay(soundInfo) {
     if (!soundInfo.buffer)
         console.log('ResourceSound: Audio not loaded when playing audio file: ' + soundInfo.filePath);
 
+    if (soundInfo.singleInstance && soundInfo.soundNode)
+    {
+        console.log('ResourceSound: Single Instance Audio already playing audio file: ' + soundInfo.filePath);
+        return;
+    }
 
-    var source      = soundContext.createBufferSource();     // creates a sound source
-    source.buffer   = soundInfo.buffer;                   // tell the source which sound to play
-    source.loop     = soundInfo.loop;
+    var soundNode           = soundContext.createBufferSource();     // creates a sound source
+    soundNode.buffer        = soundInfo.buffer;                   // tell the source which sound to play
+    soundNode.loop          = soundInfo.loop;
 
-    var gainNode    = soundContext.createGain()
-    gainNode.gain.value = soundInfo.volume
+    var gainNode            = soundContext.createGain()
+    gainNode.gain.value     = soundInfo.volume
     gainNode.connect(soundContext.destination)
 
-    source.connect(gainNode);                // connect the source to the context's destination (the speakers)
-    source.start();                                   // play the source now
+    soundNode.connect(gainNode);
+    soundNode.start();    
+
+    if (soundInfo.singleInstance)
+    {
+        soundInfo.soundNode = soundNode;
+    }
 }
