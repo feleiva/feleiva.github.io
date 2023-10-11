@@ -9,10 +9,12 @@ __FSMCurrentState   = null;
 function FSMRegisterState(stateKey, onEnterCallback, onStepCallback, onExitCallback)
 {
     if (stateKey in __FMSStates) {
-        console.warn("FSM>> State " + stateKey + " already exist, skipping");
+        console.warn("FSM>> State: " + stateKey + " already exist, skipping");
         return;
     }
     
+    console.log("FSM>> Registering State:" + stateKey);
+
     __FMSStates[stateKey] = {
         onEnter:    onEnterCallback,
         onStep:     onStepCallback,
@@ -22,22 +24,24 @@ function FSMRegisterState(stateKey, onEnterCallback, onStepCallback, onExitCallb
 
 function FSMTransitToState(stateKey)
 {
+    console.log("FSM>> Transitioning from State:" + __FSMCurrentState + " to State: " + stateKey);
+
     if (!(stateKey in __FMSStates)) {
         console.error("FSM>> State " + stateKey + " is not registered. Can't transition to it.");
         return;
     }
 
-    if (__FSMCurrentState && __FMSStates[__FSMCurrentState].onExit)
+    if (__FSMCurrentState != null && __FMSStates[__FSMCurrentState].onExit)
         __FMSStates[__FSMCurrentState].onExit();
 
     __FSMCurrentState = stateKey;
 
-    if (__FSMCurrentState && __FMSStates[__FSMCurrentState].onEnter)
+    if (__FSMCurrentState != null && __FMSStates[__FSMCurrentState].onEnter)
         __FMSStates[__FSMCurrentState].onEnter();
 }
 
 function FSMStep(dt)
 {
-    if (__FSMCurrentState && __FMSStates[__FSMCurrentState].onStep)
+    if (__FSMCurrentState != null && __FMSStates[__FSMCurrentState].onStep)
         __FMSStates[__FSMCurrentState].onStep(dt);
 }

@@ -14,15 +14,6 @@ var aimPointSettup = {
     dificultiFactor: 0.03,          // How much harder it becomes with every new point
 };
 
-const commonColors = {
-    red: { r: 255, g: 0, b: 0, a: 255, str: "rgba(255,0,0,1)" },
-    green: { r: 0, g: 255, b: 0, a: 255, str: "rgba(0,255,0,1)" },
-    blue: { r: 0, g: 0, b: 255, a: 255, str: "rgba(0,0,255,1)" },
-    white: { r: 255, g: 255, b: 255, a: 255, str: "rgba(255,255,255,1)" },
-    black: { r: 0, g: 0, b: 0, a: 255, str: "rgba(0,0,0,1)" },
-}
-
-
 var inGameSetup = {
     targetSize: 30,
     lives: 10
@@ -118,17 +109,6 @@ var gameObjects = {
     objects: []
 };
 
-const GAMESTATES = Object.freeze({
-    GS_WAIT_FOR_INPUT: 0,   // Empty screen, you need user interaction to start the audio
-    GS_PRE_LOADING: 1,      // Set up the loading queue and set transit to loading state immediatelly
-    GS_LOADING: 2,          // Process the loading queue, once done move to Home Screen
-    GS_HOME_SCREEN: 3,      // First screen with real assets, ask the user to play
-    GS_PRE_GAME:4,          // Set variables needed for the game, then kick the match
-    GS_IN_GAME: 5,      // In Game 
-    GS_FINISHED: 6          // Game Over, waits for input to move to Home Screen Again
-});
-var gameState = GAMESTATES.GS_WAIT_FOR_INPUT;
-
 const RENDERACTIONTYPE = Object.freeze({
     RAT_CLEAR: 0,
     RAT_CLEAR_COLOR: 1,
@@ -205,32 +185,230 @@ var sounds = {
     }
 }
 
-
-/// Utilitary functinos
-function colorToRGBA(color) {
-    // TODO: Needs validations!!!
-    if (!("str" in color) || color.str == "")
-        color.str = "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a / 255 + ")"
-    return color.str;
-}
-
-/// Utilitary functinos
-function colorToAlpha01(color) {
-    // TODO: Needs validations!!!
-    return  color.a / 255;
-}
-
-
-function colorToStroke(color) {
-    // TODO: Needs validations!!!
-    return "rgba(" + color.r/2 + "," + color.g/2 + "," + color.b/2 + "," + color.a / 255 + ")"
-}
-
 /// Even Handling
 function onClick() {
     clickDetected = true;
 }
 
+
+/// Main FSM States and code
+const GAMESTATES = Object.freeze({
+    GS_WAIT_FOR_INPUT: 0,   // Empty screen, you need user interaction to start the audio
+    GS_LOADING: 1,          // Process the loading queue, once done move to Home Screen
+    GS_HOME_SCREEN: 2,      // First screen with real assets, ask the user to play
+    GS_IN_GAME: 3,      // In Game 
+    GS_FINISHED: 4          // Game Over, waits for input to move to Home Screen Again
+});
+
+FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT, 
+    null, // OnEnter
+    (dt) => { 
+        if (clickDetected) {
+            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+            FSMTransitToState(GAMESTATES.GS_LOADING)
+        }
+        else {
+            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+            renderActions.actions.push(
+                {
+                    type: RENDERACTIONTYPE.RAT_TEXT_AT,
+                    text: startupSetup.preload.label,
+                    pos: startupSetup.preload.pos,
+                    color: startupSetup.preload.color,
+                    size: startupSetup.preload.size,
+                    align: startupSetup.preload.align,
+                    rotation: startupSetup.preload.rotation,
+                });
+        }
+    }, // OnStep
+    null, //OnExit
+)
+
+FSMRegisterState(GAMESTATES.GS_LOADING, 
+    () => { 
+         // Init Audio system, can only do this once the user has interacted
+         resourceSoundInit();
+         renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+
+         for (const imageId in images) {
+             images[imageId].image = new Image();
+             images[imageId].image.src = images[imageId].path;
+         }
+         for (const soundId in sounds) {
+             resouceSoundLoad(sounds[soundId]);
+         }
+    }, //OnEnter
+    (dt) => { 
+        countTotal = 0;
+        countReady = 0;
+
+        for (const imageId in images) {
+            countTotal++;
+            if (images[imageId].image.complete)
+                countReady++
+        }
+
+        for (const soundId in sounds) {
+            countTotal++;
+            if (sounds[soundId].buffer)
+                countReady++
+        }
+
+        if (countTotal == countReady) {
+            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+            FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
+        }
+        else {
+            greyLevel = Math.trunc((255 / countTotal) * countReady)
+            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: { r: greyLevel, g: greyLevel, b: greyLevel, a: 255 } }
+        }
+
+        renderActions.actions.push(
+            {
+                type: RENDERACTIONTYPE.RAT_TEXT_AT,
+                text: startupSetup.loading.label,
+                pos: startupSetup.loading.pos,
+                color: startupSetup.loading.color,
+                size: startupSetup.loading.size,
+                align: startupSetup.loading.align,
+                rotation: startupSetup.loading.rotation
+            });
+
+    }, //OnStep
+    null, //OnExit
+)
+
+
+FSMRegisterState(GAMESTATES.GS_HOME_SCREEN, 
+    () => {
+        // Start outGame Music
+        resouceSoundPlay(sounds['outGameMusic']);
+        gameObjects.objects.push(
+            {
+                type: GAMEOBJECTTYPE.GOT_IMAGE,
+                pos: { x: 0, y: 0 },
+                id: homeScreenSetup.background.image,
+                behaviorQueue: [
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: homeScreenSetup.title.label,
+                pos: homeScreenSetup.title.pos,
+                color: homeScreenSetup.title.color,
+                size: homeScreenSetup.title.size,
+                align: homeScreenSetup.title.align,
+                rotation: homeScreenSetup.title.rotation,
+                behaviorQueue: [
+                    { type: BEHAVIORTTYPES.BT_ROTATE, from: 0, to: Math.PI / 24, interpolationType: INTERPOLATIONTYPE.IT_SINCURVE, time: 20 },
+                    { type: BEHAVIORTTYPES.BT_BLOCK },
+                    { type: BEHAVIORTTYPES.BT_LOOP },
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: homeScreenSetup.subTitle.label,
+                pos: homeScreenSetup.subTitle.pos,
+                color: homeScreenSetup.subTitle.color,
+                size: homeScreenSetup.subTitle.size,
+                align: homeScreenSetup.subTitle.align,
+                rotation: homeScreenSetup.subTitle.rotation,
+                behaviorQueue: [
+                    { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.01 }, /// HACK SINCE THE LOOP ENDS WITH 0 OPACITY
+                    { type: BEHAVIORTTYPES.BT_SCALE, from: homeScreenSetup.subTitle.size, to: homeScreenSetup.subTitle.size * 1.05, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 2.0 },
+                    { type: BEHAVIORTTYPES.BT_WAIT, time: 1.0 },
+                    { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
+                    { type: BEHAVIORTTYPES.BT_BLOCK },
+                    { type: BEHAVIORTTYPES.BT_WAIT, time: 0.1 },
+                    { type: BEHAVIORTTYPES.BT_LOOP },
+                ]
+            }
+        );
+    }, // OnEnter
+    (dt) => {
+        if (clickDetected) {
+            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+            clearGameObjects();
+            FSMTransitToState(GAMESTATES.GS_IN_GAME);
+        }
+    }, // OnStep
+    () => {
+        resouceSoundStop(sounds['outGameMusic']);
+    } //OnExit
+)
+
+FSMRegisterState(GAMESTATES.GS_IN_GAME, 
+    () => {
+        gameObjects.target = { type: GAMEOBJECTTYPE.GOT_TARGET, pos: { x: targetPosition.x, y: targetPosition.y }, color: { r: 200, g: 0, b: 0, a: 255 }, size: inGameSetup.targetSize };
+        gameObjects.aimPoint = { type: GAMEOBJECTTYPE.GOT_AIMPOINT, pos: { x: targetPosition.x + 50, y: targetPosition.y + 50 }, color: { r: 0, g: 200, b: 0, a: 255 }, size: 10, angle: 0, amplitudPhase: 0 }
+        gameObjects.score = 0;
+        gameObjects.record = localStorage.getItem('record') ? parseInt(localStorage.getItem('record')) : 0;
+        gameObjects.lives = inGameSetup.lives;
+
+        // Start Ingame Music
+        resouceSoundPlay(sounds['inGameMusic']);
+    }, // OnEnter
+    (dt) => { 
+        stepTarget(dt);
+        stepAimPoint(dt);
+        stepHud(dt);
+    }, // OnStep
+    () => { }, //OnExit
+)
+
+FSMRegisterState(GAMESTATES.GS_FINISHED, 
+    () => {
+        gameObjects.objects.push(
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: "GAME OVER",
+                pos: { x: 640, y: 360 },
+                color: structuredClone(commonColors.red),
+                size: 100,
+                align: "center",
+                rotation: 0,
+                behaviorQueue: [
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: "Click to Continue",
+                pos: { x: 640, y: 420 },
+                color: structuredClone(commonColors.red),
+                size: 30,
+                align: "center",
+                rotation: 0,
+                behaviorQueue: [
+                ]
+            }
+        );
+    }, // OnEnter
+    (dt) => {
+        stepTarget(dt);
+        stepHud(dt);
+        if (clickDetected) {            
+            FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
+        }
+    }, // OnStep
+    () => {
+        clearGameObjects();
+        resouceSoundStop(sounds['inGameMusic']);
+    }, //OnExit
+)
+
+/*
+FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT, 
+    () => { }, // OnEnter
+    (dt) => { }, // OnStep
+    () => { }, //OnExit
+)*/
+
+/*
+FSMTransitToState(1);
+FSMStep(0.33);
+FSMTransitToState(2);
+FSMStep(0.15);
+*/
 
 // Step for different object types
 function stepTarget(dt) {
@@ -328,31 +506,7 @@ function stepAimPoint(dt) {
             gameObjects.lives--;
             resouceSoundPlay(sounds['hitFail']);
             if (gameObjects.lives <= 0) {
-                gameState = GAMESTATES.GS_FINISHED;
-                gameObjects.objects.push(
-                    {
-                        type: GAMEOBJECTTYPE.GOT_TEXT,
-                        label: "GAME OVER",
-                        pos: { x: 640, y: 360 },
-                        color: structuredClone(commonColors.red),
-                        size: 100,
-                        align: "center",
-                        rotation: 0,
-                        behaviorQueue: [
-                        ]
-                    },
-                    {
-                        type: GAMEOBJECTTYPE.GOT_TEXT,
-                        label: "Click to Continue",
-                        pos: { x: 640, y: 420 },
-                        color: structuredClone(commonColors.red),
-                        size: 30,
-                        align: "center",
-                        rotation: 0,
-                        behaviorQueue: [
-                        ]
-                    }
-                );
+                FSMTransitToState(gameState = GAMESTATES.GS_FINISHED);
             }
         }
     }
@@ -509,171 +663,8 @@ function step(curentTime) {
     var dt = (curentTime - lastFrameTime) / 1000; // current time is in miliseconds
     lastFrameTime = curentTime;
 
-    //// Run game logic 
-    switch (gameState) {
-        case GAMESTATES.GS_WAIT_FOR_INPUT:
-            if (clickDetected) {
-                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-                gameState = GAMESTATES.GS_PRE_LOADING;
-            }
-            else {
-                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-                renderActions.actions.push(
-                    {
-                        type: RENDERACTIONTYPE.RAT_TEXT_AT,
-                        text: startupSetup.preload.label,
-                        pos: startupSetup.preload.pos,
-                        color: startupSetup.preload.color,
-                        size: startupSetup.preload.size,
-                        align: startupSetup.preload.align,
-                        rotation: startupSetup.preload.rotation,
-                    });
-            }
-            break;
-        case GAMESTATES.GS_PRE_LOADING:
-            // Init Audio system, can only do this once the user has interacted
-            resourceSoundInit();
-            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-
-            for (const imageId in images) {
-                //images[imageId].image = document.getElementById(imageId)
-                ///images[imageId].loaded = false;
-                ///images[imageId].image.addEventListener("load", function () {
-                ///    images[imageId].loaded = true;
-                ///  });
-                images[imageId].image = new Image();
-                //images[imageId].image.onload = function(){
-                //    images[imageId].loaded = true;
-                //};
-                images[imageId].image.src = images[imageId].path;
-            }
-            for (const soundId in sounds) {
-                resouceSoundLoad(sounds[soundId]);
-            }
-
-            gameState = GAMESTATES.GS_LOADING;
-            break;
-        case GAMESTATES.GS_LOADING:
-            countTotal = 0;
-            countReady = 0;
-
-            for (const imageId in images) {
-                countTotal++;
-                if (images[imageId].image.complete)
-                    countReady++
-            }
-
-            for (const soundId in sounds) {
-                countTotal++;
-                if (sounds[soundId].buffer)
-                    countReady++
-            }
-
-            if (countTotal == countReady) {
-                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-
-                // Start outGame Music
-                resouceSoundPlay(sounds['outGameMusic']);
-                gameState = GAMESTATES.GS_HOME_SCREEN;
-                gameObjects.objects.push(
-                    {
-                        type: GAMEOBJECTTYPE.GOT_IMAGE,
-                        pos: { x: 0, y: 0 },
-                        id: homeScreenSetup.background.image,
-                        behaviorQueue: [
-                        ]
-                    },
-                    {
-                        type: GAMEOBJECTTYPE.GOT_TEXT,
-                        label: homeScreenSetup.title.label,
-                        pos: homeScreenSetup.title.pos,
-                        color: homeScreenSetup.title.color,
-                        size: homeScreenSetup.title.size,
-                        align: homeScreenSetup.title.align,
-                        rotation: homeScreenSetup.title.rotation,
-                        behaviorQueue: [
-                            { type: BEHAVIORTTYPES.BT_ROTATE, from: 0, to: Math.PI / 24, interpolationType: INTERPOLATIONTYPE.IT_SINCURVE, time: 20 },
-                            { type: BEHAVIORTTYPES.BT_BLOCK },
-                            { type: BEHAVIORTTYPES.BT_LOOP },
-                        ]
-                    },
-                    {
-                        type: GAMEOBJECTTYPE.GOT_TEXT,
-                        label: homeScreenSetup.subTitle.label,
-                        pos: homeScreenSetup.subTitle.pos,
-                        color: homeScreenSetup.subTitle.color,
-                        size: homeScreenSetup.subTitle.size,
-                        align: homeScreenSetup.subTitle.align,
-                        rotation: homeScreenSetup.subTitle.rotation,
-                        behaviorQueue: [
-                            { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.01 }, /// HACK SINCE THE LOOP ENDS WITH 0 OPACITY
-                            { type: BEHAVIORTTYPES.BT_SCALE, from: homeScreenSetup.subTitle.size, to: homeScreenSetup.subTitle.size * 1.05, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 2.0 },
-                            { type: BEHAVIORTTYPES.BT_WAIT, time: 1.0 },
-                            { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
-                            { type: BEHAVIORTTYPES.BT_BLOCK },
-                            { type: BEHAVIORTTYPES.BT_WAIT, time: 0.1 },
-                            { type: BEHAVIORTTYPES.BT_LOOP },
-                        ]
-                    }
-                );
-            }
-            else {
-                greyLevel = Math.trunc((255 / countTotal) * countReady)
-                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: { r: greyLevel, g: greyLevel, b: greyLevel, a: 255 } }
-            }
-
-            renderActions.actions.push(
-                {
-                    type: RENDERACTIONTYPE.RAT_TEXT_AT,
-                    text: startupSetup.loading.label,
-                    pos: startupSetup.loading.pos,
-                    color: startupSetup.loading.color,
-                    size: startupSetup.loading.size,
-                    align: startupSetup.loading.align,
-                    rotation: startupSetup.loading.rotation
-                });
-
-            break;
-        case GAMESTATES.GS_HOME_SCREEN:
-            if (clickDetected) {
-                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-                clearGameObjects();
-                gameState = GAMESTATES.GS_PRE_GAME;
-            }
-            stepObjects(dt);
-            break;
-        case GAMESTATES.GS_PRE_GAME:
-            gameObjects.target = { type: GAMEOBJECTTYPE.GOT_TARGET, pos: { x: targetPosition.x, y: targetPosition.y }, color: { r: 200, g: 0, b: 0, a: 255 }, size: inGameSetup.targetSize };
-            gameObjects.aimPoint = { type: GAMEOBJECTTYPE.GOT_AIMPOINT, pos: { x: targetPosition.x + 50, y: targetPosition.y + 50 }, color: { r: 0, g: 200, b: 0, a: 255 }, size: 10, angle: 0, amplitudPhase: 0 }
-            gameObjects.score = 0;
-            gameObjects.record = localStorage.getItem('record') ? parseInt(localStorage.getItem('record')) : 0;
-            gameObjects.lives = inGameSetup.lives;
-
-            // Start Ingame Music
-            resouceSoundStop(sounds['outGameMusic']);
-            resouceSoundPlay(sounds['inGameMusic']);
-            gameState = GAMESTATES.GS_IN_GAME;
-            break;
-        case GAMESTATES.GS_IN_GAME:
-            stepTarget(dt);
-            stepAimPoint(dt);
-            stepHud(dt);
-            stepObjects(dt);
-            break;
-        case GAMESTATES.GS_FINISHED:
-            stepTarget(dt);
-            stepHud(dt);
-            if (clickDetected) {
-                resouceSoundPlay(sounds['outGameMusic']);
-                resouceSoundStop(sounds['inGameMusic']);
-
-                clearGameObjects();
-            
-                gameState = GAMESTATES.GS_HOME_SCREEN;
-            }
-            stepObjects(dt);
-            break;
-    }
+    FSMStep(dt); // Step the game logic
+    stepObjects(dt);
 
     // Clear the click flag 
     clickDetected = false
@@ -705,8 +696,16 @@ function main() {
         height: canvasElement.height
     }
 
+    {
+        window.addEventListener(
+            "mousedown", // Mouse down is more acurate than click, which triggers on mouse up
+            onClick,
+            true
+        )
+    }
+
     // Eveything is ok, prepare to run the game then register the input detection and trigger the game loop
-    gameState = GAMESTATES.GS_WAIT_FOR_INPUT;
+    FSMTransitToState(GAMESTATES.GS_WAIT_FOR_INPUT);
 
     /*
     window.mobileCheck = function() {
@@ -724,13 +723,7 @@ function main() {
     }
     else
     */
-    {
-        window.addEventListener(
-            "mousedown", // Mouse down is more acurate than click, which triggers on mouse up
-            onClick,
-            true
-        )
-    }
+    
 
     window.requestAnimationFrame(step);
 }
