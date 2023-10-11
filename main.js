@@ -34,14 +34,16 @@ var startupSetup = {
         pos: { x: 640, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
-        align: "center"
+        align: "center",
+        rotation: 0
     },
     loading: {
         label: "Loading",
         pos: { x: 640, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
-        align: "center"
+        align: "center",
+        rotation: 0
     },
 }
 
@@ -55,14 +57,16 @@ var homeScreenSetup = {
         pos: { x: 640, y: 260 },
         size: 150,
         color: { r: 255, g: 255, b: 255, a: 255 },
-        align: "center"
+        align: "center",
+        rotation: 0
     },
     subTitle: {
         label: "Click To Play",
         pos: { x: 640, y: 560 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
-        align: "center"
+        align: "center",
+        rotation: 0
     }
 }
 
@@ -72,14 +76,16 @@ var hudSetup = {
         size: 30,
         color: commonColors.black,
         align: "right",
-        digits: 5
+        digits: 5,
+        rotation: 0
     },
     record: {
         pos: { x: 50, y: 50 },
         size: 30,
         color: commonColors.red,
         align: "left",
-        digits: 5
+        digits: 5,
+        rotation: 0
     },
     lives: {
         pos: { x: 1230, y: 80 },
@@ -87,7 +93,8 @@ var hudSetup = {
         color: commonColors.blue,
         align: "right",
         label: "Lives: ",
-        digits: "2"
+        digits: "2",
+        rotation: 0
     }
 }
 
@@ -259,6 +266,7 @@ function stepAimPoint(dt) {
                     color: structuredClone(commonColors.green),
                     size: 50,
                     align: "left",
+                    rotation: 0,
                     behaviorQueue: [
                         { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
                         { type: BEHAVIORTTYPES.BT_BLOCK },
@@ -306,6 +314,7 @@ function stepAimPoint(dt) {
                     color: structuredClone(commonColors.red),
                     size: 50,
                     align: "left",
+                    rotation: 0,
                     behaviorQueue: [
                         { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
                         { type: BEHAVIORTTYPES.BT_BLOCK },
@@ -328,6 +337,7 @@ function stepAimPoint(dt) {
                         color: structuredClone(commonColors.red),
                         size: 100,
                         align: "center",
+                        rotation: 0,
                         behaviorQueue: [
                         ]
                     },
@@ -338,6 +348,7 @@ function stepAimPoint(dt) {
                         color: structuredClone(commonColors.red),
                         size: 30,
                         align: "center",
+                        rotation: 0,
                         behaviorQueue: [
                         ]
                     }
@@ -355,7 +366,8 @@ function stepHud(dt) {
             pos: hudSetup.score.pos,
             color: hudSetup.score.color,
             size: hudSetup.score.size,
-            align: hudSetup.score.align
+            align: hudSetup.score.align,
+            rotation: hudSetup.score.rotation
         });
     renderActions.actions.push(
         {
@@ -364,7 +376,8 @@ function stepHud(dt) {
             pos: hudSetup.record.pos,
             color: hudSetup.record.color,
             size: hudSetup.record.size,
-            align: hudSetup.record.align
+            align: hudSetup.record.align,
+            rotation: hudSetup.record.rotation
         });
     renderActions.actions.push(
         {
@@ -373,7 +386,8 @@ function stepHud(dt) {
             pos: hudSetup.lives.pos,
             color: hudSetup.lives.color,
             size: hudSetup.lives.size,
-            align: hudSetup.lives.align
+            align: hudSetup.lives.align,
+            rotation: hudSetup.record.rotation
         });
 }
 
@@ -415,7 +429,8 @@ function stepObjects(dt) {
                         pos: theObject.pos,
                         color: theObject.color,
                         size: theObject.size,
-                        align: theObject.align
+                        align: theObject.align,
+                        rotation: theObject.rotation
                     });
                 break;
             case GAMEOBJECTTYPE.GOT_IMAGE:
@@ -473,6 +488,7 @@ function renderAction(renderAction) {
             main2dContext.context.textAlign = renderAction.align;            
             main2dContext.context.save();
             main2dContext.context.translate(renderAction.pos.x, renderAction.pos.y);
+            main2dContext.context.rotate(renderAction.rotation);
             main2dContext.context.strokeStyle = colorToStroke(renderAction.color);
             main2dContext.context.lineWidth = 1;
             main2dContext.context.strokeText(renderAction.text, 0, 0);
@@ -509,7 +525,8 @@ function step(curentTime) {
                         pos: startupSetup.preload.pos,
                         color: startupSetup.preload.color,
                         size: startupSetup.preload.size,
-                        align: startupSetup.preload.align
+                        align: startupSetup.preload.align,
+                        rotation: startupSetup.preload.rotation,
                     });
             }
             break;
@@ -573,7 +590,11 @@ function step(curentTime) {
                         color: homeScreenSetup.title.color,
                         size: homeScreenSetup.title.size,
                         align: homeScreenSetup.title.align,
+                        rotation: homeScreenSetup.title.rotation,
                         behaviorQueue: [
+                            { type: BEHAVIORTTYPES.BT_ROTATE, from: 0, to: Math.PI / 20, interpolationType: INTERPOLATIONTYPE.IT_SINCURVE, time: 20 },
+                            { type: BEHAVIORTTYPES.BT_BLOCK },
+                            { type: BEHAVIORTTYPES.BT_LOOP },
                         ]
                     },
                     {
@@ -583,6 +604,7 @@ function step(curentTime) {
                         color: homeScreenSetup.subTitle.color,
                         size: homeScreenSetup.subTitle.size,
                         align: homeScreenSetup.subTitle.align,
+                        rotation: homeScreenSetup.subTitle.rotation,
                         behaviorQueue: [
                             { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.01 }, /// HACK SINCE THE LOOP ENDS WITH 0 OPACITY
                             { type: BEHAVIORTTYPES.BT_SCALE, from: homeScreenSetup.subTitle.size, to: homeScreenSetup.subTitle.size * 1.05, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 2.0 },
@@ -607,7 +629,8 @@ function step(curentTime) {
                     pos: startupSetup.loading.pos,
                     color: startupSetup.loading.color,
                     size: startupSetup.loading.size,
-                    align: startupSetup.loading.align
+                    align: startupSetup.loading.align,
+                    rotation: startupSetup.loading.rotation
                 });
 
             break;

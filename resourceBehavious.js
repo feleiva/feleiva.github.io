@@ -4,6 +4,7 @@ const INTERPOLATIONTYPE = Object.freeze({
     IT_LINEAL: 0,   // Lineal interpolation
     IT_EASIIN: 1,   // Start slow, finish fast
     IT_EASIOUT: 2,  // Start fast, finish slow
+    IT_SINCURVE: 3,  // Mimics a sinousoidal curve. Only works with 1d parameters (for now??). From is base level, to is the amplitude
 });   
 
 function interpolate2d(from, to, type, interpolator) {
@@ -47,6 +48,10 @@ function interpolate1d(from, to, type, interpolator) {
             factor = Math.sin((interpolator * Math.PI) / 2);
             return from + (to - from) * factor;
             break;
+        case INTERPOLATIONTYPE.IT_SINCURVE:
+            factor = Math.sin((interpolator * 2 * Math.PI));
+            return from + to * factor;
+            break;
         default:
             throw new Error('Invalid Interpolation type');
             break;
@@ -60,11 +65,12 @@ const BEHAVIORTTYPES = Object.freeze({
     BT_FADE: 2,     // Fade the object, between from and to, during time, then is removed from the queue 
     BT_MOVE_ACCEL: 3,     // Move the object, Apply Acceleration, during time, then is removed from the queue 
     BT_MOVETO: 4,     // Move the object, between from and to, during time, then is removed from the queue
-    BT_KILL: 5,     // Report the object must be killed after time
+    BT_ROTATE: 5,     // Rotate the object, between from and to, during time, then is removed from the queue
+    BT_KILL: 6,     // Report the object must be killed after time
     // These are special type of behaviors, which are used to control the flow on a behavior list
-    BT_WAIT: 6,     // Wait time before continue processing the effect list
-    BT_BLOCK: 7,    // Block processing the effect list until all previous behaviors finish executing
-    BT_LOOP: 8,    // Replay the behavior list
+    BT_WAIT: 7,     // Wait time before continue processing the effect list
+    BT_BLOCK: 8,    // Block processing the effect list until all previous behaviors finish executing
+    BT_LOOP: 9,    // Replay the behavior list
     
   });
 
@@ -114,6 +120,20 @@ function stepBehaviors(behaviorObject, dt) {
                 behaviorObject.color.a      = interpolate1d(behaviorInstance.from, behaviorInstance.to, behaviorInstance.interpolationType, behaviorInstance._elapseTime/behaviorInstance.time)
                 behaviorObject.color.str    = "";
                 break;
+            case BEHAVIORTTYPES.BT_ROTATE:
+                    if (! ("_elapseTime" in behaviorInstance)) {
+                        behaviorInstance._elapseTime = 0;
+                        if (! ("from" in behaviorInstance))
+                            behaviorInstance.from = behaviorObject.rotation;
+                    }
+                    else
+                        behaviorInstance._elapseTime += dt;
+                    if (behaviorInstance._elapseTime >= behaviorInstance.time) {
+                        shouldPop = true;
+                        behaviorInstance._elapseTime = behaviorInstance.time;
+                    }
+                    behaviorObject.rotation      = interpolate1d(behaviorInstance.from, behaviorInstance.to, behaviorInstance.interpolationType, behaviorInstance._elapseTime/behaviorInstance.time)
+                    break;
             case BEHAVIORTTYPES.BT_MOVE_ACCEL:
                 if (! ("_elapseTime" in behaviorInstance)) {
                     behaviorInstance._elapseTime = 0;
