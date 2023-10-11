@@ -71,21 +71,21 @@ var hudSetup = {
         pos: { x: 1230, y: 50 },
         size: 30,
         color: commonColors.black,
-        align: "end",
+        align: "right",
         digits: 5
     },
     record: {
         pos: { x: 50, y: 50 },
         size: 30,
         color: commonColors.red,
-        align: "start",
+        align: "left",
         digits: 5
     },
     lives: {
         pos: { x: 1230, y: 80 },
         size: 20,
         color: commonColors.blue,
-        align: "end",
+        align: "right",
         label: "Lives: ",
         digits: "2"
     }
@@ -258,7 +258,7 @@ function stepAimPoint(dt) {
                     pos: { x: 730, y: 360 },
                     color: structuredClone(commonColors.green),
                     size: 50,
-                    align: "start",
+                    align: "left",
                     behaviorQueue: [
                         { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
                         { type: BEHAVIORTTYPES.BT_BLOCK },
@@ -305,7 +305,7 @@ function stepAimPoint(dt) {
                     pos: { x: 730, y: 360 },
                     color: structuredClone(commonColors.red),
                     size: 50,
-                    align: "start",
+                    align: "left",
                     behaviorQueue: [
                         { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
                         { type: BEHAVIORTTYPES.BT_BLOCK },
@@ -470,25 +470,15 @@ function renderAction(renderAction) {
             break;
         case RENDERACTIONTYPE.RAT_TEXT_AT: // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text
             main2dContext.context.font = renderAction.size + "px Orbitron";
-            main2dContext.context.textAlight = renderAction.align;
-            main2dContext.context.strokeStyle = colorToStroke(renderAction.color); //'white';
+            main2dContext.context.textAlign = renderAction.align;            
+            main2dContext.context.save();
+            main2dContext.context.translate(renderAction.pos.x, renderAction.pos.y);
+            main2dContext.context.strokeStyle = colorToStroke(renderAction.color);
             main2dContext.context.lineWidth = 1;
-
-            var posX = renderAction.pos.x;
-            switch(renderAction.align) {
-                case "center":
-                    posX -= main2dContext.context.measureText(renderAction.text).width/2;
-                    break;
-                case "end":
-                    posX -= main2dContext.context.measureText(renderAction.text).width;
-                    break;
-                default:
-                    break;
-            }
-
-            main2dContext.context.strokeText(renderAction.text, posX, renderAction.pos.y);
+            main2dContext.context.strokeText(renderAction.text, 0, 0);
             main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
-            main2dContext.context.fillText(renderAction.text, posX, renderAction.pos.y);
+            main2dContext.context.fillText(renderAction.text, 0, 0);
+            main2dContext.context.restore();
             break;
         case RENDERACTIONTYPE.RAT_IMAGE_AT: // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
             main2dContext.context.drawImage(images[renderAction.id].image, renderAction.pos.x, renderAction.pos.y);
