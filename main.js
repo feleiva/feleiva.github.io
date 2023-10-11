@@ -1,6 +1,3 @@
-// TODO
-// . Add code to stop music
-
 // Constants
 var mainCanvasName = "mainCamvas";
 var targetPosition = {
@@ -11,9 +8,10 @@ var lastFrameTime;
 var main2dContext;
 var clickDetected = false;
 var aimPointSettup = {
-    rotationAngularSpeed: 1,            // 1 rotation every 2*PI seconds
-    maxAmplitude: 50,           // Max distance to target
-    amplitudePhase: 3.0           // 1 full cycle every 2*PI seconds
+    rotationAngularSpeed: 0.5,      // 1 rotation every 2*PI seconds, the bigger the harder
+    maxAmplitude: 50,               // Max distance to target
+    amplitudePhase: 3.0,            // 1 full cycle every 2*PI seconds
+    dificultiFactor: 0.03,          // How much harder it becomes with every new point
 };
 
 const commonColors = {
@@ -33,14 +31,14 @@ var inGameSetup = {
 var startupSetup = {
     preload: {
         label: "Click To Start",
-        pos: { x: 500, y: 360 },
+        pos: { x: 640, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
         align: "center"
     },
     loading: {
         label: "Loading",
-        pos: { x: 500, y: 360 },
+        pos: { x: 640, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
         align: "center"
@@ -53,8 +51,15 @@ var homeScreenSetup = {
         image: "outgame-background-720"
     },
     title: {
-        label: "Click To Start",
-        pos: { x: 500, y: 360 },
+        label: "E-DONKEY",
+        pos: { x: 640, y: 260 },
+        size: 150,
+        color: { r: 255, g: 255, b: 255, a: 255 },
+        align: "center"
+    },
+    subTitle: {
+        label: "Click To Play",
+        pos: { x: 640, y: 560 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
         align: "center"
@@ -63,24 +68,24 @@ var homeScreenSetup = {
 
 var hudSetup = {
     score: {
-        pos: { x: 1050, y: 50 },
+        pos: { x: 1230, y: 50 },
         size: 30,
         color: commonColors.black,
         align: "end",
         digits: 5
     },
     record: {
-        pos: { x: 0, y: 50 },
+        pos: { x: 50, y: 50 },
         size: 30,
         color: commonColors.red,
         align: "start",
         digits: 5
     },
     lives: {
-        pos: { x: 1050, y: 80 },
+        pos: { x: 1230, y: 80 },
         size: 20,
         color: commonColors.blue,
-        align: "start",
+        align: "end",
         label: "Lives: ",
         digits: "2"
     }
@@ -208,6 +213,12 @@ function colorToAlpha01(color) {
     return  color.a / 255;
 }
 
+
+function colorToStroke(color) {
+    // TODO: Needs validations!!!
+    return "rgba(" + color.r/2 + "," + color.g/2 + "," + color.b/2 + "," + color.a / 255 + ")"
+}
+
 /// Even Handling
 function onClick() {
     clickDetected = true;
@@ -223,7 +234,7 @@ function stepTarget(dt) {
 }
 
 function stepAimPoint(dt) {
-    scoreFactor = 1 + (0.05) * gameObjects.score;
+    scoreFactor = 1 + (aimPointSettup.dificultiFactor) * gameObjects.score;
 
     gameObjects.aimPoint.angle += aimPointSettup.rotationAngularSpeed * dt * scoreFactor;
     gameObjects.aimPoint.amplitudPhase += aimPointSettup.amplitudePhase * dt * scoreFactor;
@@ -309,8 +320,29 @@ function stepAimPoint(dt) {
             resouceSoundPlay(sounds['hitFail']);
             if (gameObjects.lives <= 0) {
                 gameState = GAMESTATES.GS_FINISHED;
+                gameObjects.objects.push(
+                    {
+                        type: GAMEOBJECTTYPE.GOT_TEXT,
+                        label: "GAME OVER",
+                        pos: { x: 640, y: 360 },
+                        color: structuredClone(commonColors.red),
+                        size: 100,
+                        align: "center",
+                        behaviorQueue: [
+                        ]
+                    },
+                    {
+                        type: GAMEOBJECTTYPE.GOT_TEXT,
+                        label: "Click to Continue",
+                        pos: { x: 640, y: 420 },
+                        color: structuredClone(commonColors.red),
+                        size: 30,
+                        align: "center",
+                        behaviorQueue: [
+                        ]
+                    }
+                );
             }
-
         }
     }
 }
@@ -343,6 +375,17 @@ function stepHud(dt) {
             size: hudSetup.lives.size,
             align: hudSetup.lives.align
         });
+}
+
+function clearGameObjects()
+{
+    // Make sure all game objects are erased on the next step
+    for (gameObject of gameObjects.objects)
+    {
+        gameObject.behaviorQueue = [
+            { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+        ];
+    }
 }
 
 function stepObjects(dt) {
@@ -428,11 +471,24 @@ function renderAction(renderAction) {
         case RENDERACTIONTYPE.RAT_TEXT_AT: // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text
             main2dContext.context.font = renderAction.size + "px Orbitron";
             main2dContext.context.textAlight = renderAction.align;
-            main2dContext.context.strokeStyle = 'black';
+            main2dContext.context.strokeStyle = colorToStroke(renderAction.color); //'white';
             main2dContext.context.lineWidth = 1;
-            main2dContext.context.strokeText(renderAction.text, renderAction.pos.x, renderAction.pos.y);
+
+            var posX = renderAction.pos.x;
+            switch(renderAction.align) {
+                case "center":
+                    posX -= main2dContext.context.measureText(renderAction.text).width/2;
+                    break;
+                case "end":
+                    posX -= main2dContext.context.measureText(renderAction.text).width;
+                    break;
+                default:
+                    break;
+            }
+
+            main2dContext.context.strokeText(renderAction.text, posX, renderAction.pos.y);
             main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
-            main2dContext.context.fillText(renderAction.text, renderAction.pos.x, renderAction.pos.y);
+            main2dContext.context.fillText(renderAction.text, posX, renderAction.pos.y);
             break;
         case RENDERACTIONTYPE.RAT_IMAGE_AT: // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
             main2dContext.context.drawImage(images[renderAction.id].image, renderAction.pos.x, renderAction.pos.y);
@@ -512,6 +568,42 @@ function step(curentTime) {
                 // Start outGame Music
                 resouceSoundPlay(sounds['outGameMusic']);
                 gameState = GAMESTATES.GS_HOME_SCREEN;
+                gameObjects.objects.push(
+                    {
+                        type: GAMEOBJECTTYPE.GOT_IMAGE,
+                        pos: { x: 0, y: 0 },
+                        id: homeScreenSetup.background.image,
+                        behaviorQueue: [
+                        ]
+                    },
+                    {
+                        type: GAMEOBJECTTYPE.GOT_TEXT,
+                        label: homeScreenSetup.title.label,
+                        pos: homeScreenSetup.title.pos,
+                        color: homeScreenSetup.title.color,
+                        size: homeScreenSetup.title.size,
+                        align: homeScreenSetup.title.align,
+                        behaviorQueue: [
+                        ]
+                    },
+                    {
+                        type: GAMEOBJECTTYPE.GOT_TEXT,
+                        label: homeScreenSetup.subTitle.label,
+                        pos: homeScreenSetup.subTitle.pos,
+                        color: homeScreenSetup.subTitle.color,
+                        size: homeScreenSetup.subTitle.size,
+                        align: homeScreenSetup.subTitle.align,
+                        behaviorQueue: [
+                            { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.01 }, /// HACK SINCE THE LOOP ENDS WITH 0 OPACITY
+                            { type: BEHAVIORTTYPES.BT_SCALE, from: homeScreenSetup.subTitle.size, to: homeScreenSetup.subTitle.size * 1.05, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 2.0 },
+                            { type: BEHAVIORTTYPES.BT_WAIT, time: 1.0 },
+                            { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
+                            { type: BEHAVIORTTYPES.BT_BLOCK },
+                            { type: BEHAVIORTTYPES.BT_WAIT, time: 0.1 },
+                            { type: BEHAVIORTTYPES.BT_LOOP },
+                        ]
+                    }
+                );
             }
             else {
                 greyLevel = Math.trunc((255 / countTotal) * countReady)
@@ -532,23 +624,10 @@ function step(curentTime) {
         case GAMESTATES.GS_HOME_SCREEN:
             if (clickDetected) {
                 renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+                clearGameObjects();
                 gameState = GAMESTATES.GS_PRE_GAME;
             }
-            else {
-                renderActions.actions.push(
-                    { 
-                        type: RENDERACTIONTYPE.RAT_IMAGE_AT,
-                        pos: { x: 0, y: 0 }, id: homeScreenSetup.background.image,
-                    },
-                    {
-                        type: RENDERACTIONTYPE.RAT_TEXT_AT,
-                        text: homeScreenSetup.title.label,
-                        pos: homeScreenSetup.title.pos,
-                        color: homeScreenSetup.title.color,
-                        size: homeScreenSetup.title.size,
-                        align: homeScreenSetup.title.align
-                    });
-            }
+            stepObjects(dt);
             break;
         case GAMESTATES.GS_PRE_GAME:
             gameObjects.target = { type: GAMEOBJECTTYPE.GOT_TARGET, pos: { x: targetPosition.x, y: targetPosition.y }, color: { r: 200, g: 0, b: 0, a: 255 }, size: inGameSetup.targetSize };
@@ -572,38 +651,12 @@ function step(curentTime) {
             stepTarget(dt);
             stepHud(dt);
             if (clickDetected) {
-                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
                 resouceSoundPlay(sounds['outGameMusic']);
                 resouceSoundStop(sounds['inGameMusic']);
-                gameObjects.objects = [];
+
+                clearGameObjects();
+            
                 gameState = GAMESTATES.GS_HOME_SCREEN;
-            }
-            else {
-                renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-                gameObjects.objects.push(
-                    {
-                        type: GAMEOBJECTTYPE.GOT_TEXT,
-                        label: "FAIL",
-                        pos: { x: 500, y: 360 },
-                        color: structuredClone(commonColors.red),
-                        size: 100,
-                        align: "center",
-                        behaviorQueue: [
-                        ]
-                    }
-                );
-                gameObjects.objects.push(
-                    {
-                        type: GAMEOBJECTTYPE.GOT_TEXT,
-                        label: "Click to Continue",
-                        pos: { x: 490, y: 420 },
-                        color: structuredClone(commonColors.red),
-                        size: 30,
-                        align: "center",
-                        behaviorQueue: [
-                        ]
-                    }
-                );
             }
             stepObjects(dt);
             break;

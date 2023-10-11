@@ -64,6 +64,7 @@ const BEHAVIORTTYPES = Object.freeze({
     // These are special type of behaviors, which are used to control the flow on a behavior list
     BT_WAIT: 6,     // Wait time before continue processing the effect list
     BT_BLOCK: 7,    // Block processing the effect list until all previous behaviors finish executing
+    BT_LOOP: 8,    // Replay the behavior list
     
   });
 
@@ -72,6 +73,10 @@ function stepBehaviors(behaviorObject, dt) {
     // This object does not have a bhvr queue, just skip it
     if (!("behaviorQueue" in behaviorObject))
         return false;
+
+    // Keep a pristine copy, in case we need to loop
+    if (!("_behaviorQueueBackup" in behaviorObject))
+        behaviorObject._behaviorQueueBackup = structuredClone(behaviorObject.behaviorQueue);
 
     for (let i = 0; i < behaviorObject.behaviorQueue.length;) {
         shouldPop = false;
@@ -161,12 +166,16 @@ function stepBehaviors(behaviorObject, dt) {
                     shouldPop = true;
                 }
                 else
-                    return;
+                    return false;
                 break;
             case BEHAVIORTTYPES.BT_BLOCK:
                 if (i > 0)
-                    return;
+                    return false;
                 shouldPop = true;
+                break;
+            case BEHAVIORTTYPES.BT_LOOP:
+                behaviorObject.behaviorQueue = structuredClone(behaviorObject._behaviorQueueBackup);
+                return false;
                 break;
         }
         if (shouldPop)
