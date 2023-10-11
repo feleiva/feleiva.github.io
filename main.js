@@ -592,7 +592,7 @@ function step(curentTime) {
                         align: homeScreenSetup.title.align,
                         rotation: homeScreenSetup.title.rotation,
                         behaviorQueue: [
-                            { type: BEHAVIORTTYPES.BT_ROTATE, from: 0, to: Math.PI / 20, interpolationType: INTERPOLATIONTYPE.IT_SINCURVE, time: 20 },
+                            { type: BEHAVIORTTYPES.BT_ROTATE, from: 0, to: Math.PI / 24, interpolationType: INTERPOLATIONTYPE.IT_SINCURVE, time: 20 },
                             { type: BEHAVIORTTYPES.BT_BLOCK },
                             { type: BEHAVIORTTYPES.BT_LOOP },
                         ]
