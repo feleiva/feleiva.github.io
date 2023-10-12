@@ -41,6 +41,12 @@ function inputInit() {
         true
     )
 
+    window.addEventListener(
+        "touchstart", // Need this to get the event detected on Apple mobile devices
+        inputOnClick,
+        true
+    )
+
     window.addEventListener('gamepadconnected', inputOnGamePadConnected);
     window.addEventListener('gamepaddisconnected', inputOnGamePadDisConnected);
 }
