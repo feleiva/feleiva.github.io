@@ -9,10 +9,16 @@ function resourceSoundInit() {
     }
 }
 
+function resourceSoundIsAvailable() {
+    return soundContext != null;
+}
 
 function resouceSoundLoad(soundInfo) {
-    if (!soundContext)
+    if (!soundContext) {
         console.log('ResourceSound: No audio context when loading audio file: ' + soundInfo.filePath);
+        return;
+    }
+        
 
     var request = new XMLHttpRequest();
     request.open('GET', soundInfo.filePath, true);
@@ -33,8 +39,10 @@ function resouceSoundLoad(soundInfo) {
 }
 
 function resouceSoundStop(soundInfo) {
-    if (!soundContext)
+    if (!soundContext) {
         console.log('ResourceSound: No audio context when playing audio file: ' + soundInfo.filePath);
+        return;
+    }
 
     if (soundInfo.soundNode)
     {
@@ -46,9 +54,11 @@ function resouceSoundStop(soundInfo) {
 }
 
 function resouceSoundPlay(soundInfo) {
-    if (!soundContext)
+    if (!soundContext) {
         console.log('ResourceSound: No audio context when playing audio file: ' + soundInfo.filePath);
-
+        return;
+    }
+       
     if (!soundInfo.buffer)
         console.log('ResourceSound: Audio not loaded when playing audio file: ' + soundInfo.filePath);
 

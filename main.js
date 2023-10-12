@@ -216,8 +216,10 @@ FSMRegisterState(GAMESTATES.GS_LOADING,
              images[imageId].image = new Image();
              images[imageId].image.src = images[imageId].path;
          }
-         for (const soundId in sounds) {
-             resouceSoundLoad(sounds[soundId]);
+         if (resourceSoundIsAvailable()) {
+            for (const soundId in sounds) {
+                resouceSoundLoad(sounds[soundId]);
+            }
          }
     }, //OnEnter
     (dt) => { 
@@ -230,10 +232,12 @@ FSMRegisterState(GAMESTATES.GS_LOADING,
                 countReady++
         }
 
-        for (const soundId in sounds) {
-            countTotal++;
-            if (sounds[soundId].buffer)
-                countReady++
+        if (resourceSoundIsAvailable()) {
+            for (const soundId in sounds) {
+                countTotal++;
+                if (sounds[soundId].buffer)
+                    countReady++
+            }
         }
 
         if (countTotal == countReady) {
