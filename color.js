@@ -2,6 +2,7 @@ const commonColors = {
     red: { r: 255, g: 0, b: 0, a: 255, str: "rgba(255,0,0,1)" },
     green: { r: 0, g: 255, b: 0, a: 255, str: "rgba(0,255,0,1)" },
     blue: { r: 0, g: 0, b: 255, a: 255, str: "rgba(0,0,255,1)" },
+    yellow: { r: 255, g: 255, b: 20, a: 255, str: "rgba(255,255,20,1)" },
     white: { r: 255, g: 255, b: 255, a: 255, str: "rgba(255,255,255,1)" },
     black: { r: 0, g: 0, b: 0, a: 255, str: "rgba(0,0,0,1)" },
 }

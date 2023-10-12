@@ -6,7 +6,6 @@ var targetPosition = {
 };
 var lastFrameTime;
 var main2dContext;
-var clickDetected = false;
 var aimPointSettup = {
     rotationAngularSpeed: 0.5,      // 1 rotation every 2*PI seconds, the bigger the harder
     maxAmplitude: 50,               // Max distance to target
@@ -64,6 +63,7 @@ var homeScreenSetup = {
 var hudSetup = {
     score: {
         pos: { x: 1230, y: 50 },
+        label: "Score: ",
         size: 30,
         color: commonColors.black,
         align: "right",
@@ -72,6 +72,7 @@ var hudSetup = {
     },
     record: {
         pos: { x: 50, y: 50 },
+        label: "Record: ",
         size: 30,
         color: commonColors.red,
         align: "left",
@@ -171,10 +172,6 @@ var sounds = {
     }
 }
 
-/// Even Handling
-function onClick() {
-    clickDetected = true;
-}
 
 /// Main FSM States and code
 const GAMESTATES = Object.freeze({
@@ -188,7 +185,7 @@ const GAMESTATES = Object.freeze({
 FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT, 
     null, // OnEnter
     (dt) => { 
-        if (clickDetected) {
+        if (inputClickDetected()) {
             renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
             FSMTransitToState(GAMESTATES.GS_LOADING)
         }
@@ -311,7 +308,7 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
         );
     }, // OnEnter
     (dt) => {
-        if (clickDetected) {
+        if (inputClickDetected()) {
             renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
             clearGameObjects();
             FSMTransitToState(GAMESTATES.GS_IN_GAME);
@@ -324,8 +321,8 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
 
 FSMRegisterState(GAMESTATES.GS_IN_GAME, 
     () => {
-        gameObjects.target = { type: GAMEOBJECTTYPE.GOT_TARGET, pos: { x: targetPosition.x, y: targetPosition.y }, color: { r: 200, g: 0, b: 0, a: 255 }, size: inGameSetup.targetSize };
-        gameObjects.aimPoint = { type: GAMEOBJECTTYPE.GOT_AIMPOINT, pos: { x: targetPosition.x + 50, y: targetPosition.y + 50 }, color: { r: 0, g: 200, b: 0, a: 255 }, size: 10, angle: 0, amplitudPhase: 0 }
+        gameObjects.target = { type: GAMEOBJECTTYPE.GOT_TARGET, pos: { x: targetPosition.x, y: targetPosition.y }, color: commonColors.black, size: inGameSetup.targetSize };
+        gameObjects.aimPoint = { type: GAMEOBJECTTYPE.GOT_AIMPOINT, pos: { x: targetPosition.x + 50, y: targetPosition.y + 50 }, color: commonColors.red, size: 10, angle: 0, amplitudPhase: 0 }
         gameObjects.score = 0;
         gameObjects.record = localStorage.getItem('record') ? parseInt(localStorage.getItem('record')) : 0;
         gameObjects.lives = inGameSetup.lives;
@@ -371,7 +368,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     (dt) => {
         stepTarget(dt);
         stepHud(dt);
-        if (clickDetected) {            
+        if (inputClickDetected()) {            
             FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
         }
     }, // OnStep
@@ -400,6 +397,8 @@ function stepTarget(dt) {
 
     renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_NONE } // We use a full screen image. No need to clear
     renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, id: "ingame-background-720" })
+    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size * 3 })
+    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: commonColors.white, size: gameObjects.target.size* 2 })
     renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size })
 }
 
@@ -418,8 +417,8 @@ function stepAimPoint(dt) {
     renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, id: "tail" })
 
     if (Math.abs(currentAmplitude) <= gameObjects.target.size / 2) {
-        renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.blue, size: gameObjects.aimPoint.size })
-        if (clickDetected) {
+        renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.green, size: gameObjects.aimPoint.size })
+        if (inputClickDetected()) {
             //console.log("Goal!!")
             gameObjects.objects.push(
                 {
@@ -466,7 +465,7 @@ function stepAimPoint(dt) {
     }
     else {
         renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
-        if (clickDetected) {
+        if (inputClickDetected()) {
             renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: commonColors.red }
             //console.log("Fail " + Math.abs(currentAmplitude))
             gameObjects.objects.push(
@@ -501,7 +500,7 @@ function stepHud(dt) {
     renderActions.actions.push(
         {
             type: RENDERACTIONTYPE.RAT_TEXT_AT,
-            text: ("0000000000000" + String(gameObjects.score)).slice(-hudSetup.score.digits),
+            text: hudSetup.score.label + ("0000000000000" + String(gameObjects.score)).slice(-hudSetup.score.digits),
             pos: hudSetup.score.pos,
             color: hudSetup.score.color,
             size: hudSetup.score.size,
@@ -511,7 +510,7 @@ function stepHud(dt) {
     renderActions.actions.push(
         {
             type: RENDERACTIONTYPE.RAT_TEXT_AT,
-            text: ("0000000000000" + String(gameObjects.record)).slice(-hudSetup.record.digits),
+            text: hudSetup.record.label + ("0000000000000" + String(gameObjects.record)).slice(-hudSetup.record.digits),
             pos: hudSetup.record.pos,
             color: hudSetup.record.color,
             size: hudSetup.record.size,
@@ -606,11 +605,14 @@ function step(curentTime) {
     var dt = (curentTime - lastFrameTime) / 1000; // current time is in miliseconds
     lastFrameTime = curentTime;
 
+    // Capture Input
+    inputStep();
+
     FSMStep(dt); // Step the game logic
     stepObjects(dt);
 
     // Clear the click flag 
-    clickDetected = false
+    inputClearClick();
 
     //// Render
     render();
@@ -635,13 +637,7 @@ function main() {
         height: canvasElement.height
     }
 
-    {
-        window.addEventListener(
-            "mousedown", // Mouse down is more acurate than click, which triggers on mouse up
-            onClick,
-            true
-        )
-    }
+    inputInit();
 
     // Eveything is ok, prepare to run the game then register the input detection and trigger the game loop
     FSMTransitToState(GAMESTATES.GS_WAIT_FOR_INPUT);
