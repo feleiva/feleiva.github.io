@@ -139,7 +139,7 @@ var images = {
 
 var sounds = {
     "hitSuccess": {
-        filePath: "sound/HitSuccess.ogg",
+        filePath: "sound/HitSuccess.mp3",
         loop: false,
         singleInstance: false,
         volume: 1.0,
@@ -147,7 +147,7 @@ var sounds = {
         soundNode: null
     },
     "hitFail": {
-        filePath: "sound/HitFail.ogg",
+        filePath: "sound/HitFail.mp3",
         loop: false,
         singleInstance: false,
         volume: 1.0,
@@ -155,7 +155,7 @@ var sounds = {
         soundNode: null
     },
     "outGameMusic": {
-        filePath: "sound/IAmOnMyWay.ogg",
+        filePath: "sound/IAmOnMyWay.mp3",
         loop: true,
         singleInstance: true,
         volume: 0.1,
@@ -163,7 +163,7 @@ var sounds = {
         soundNode: null
     },
     "inGameMusic": {
-        filePath: "sound/ImABeleiver.ogg",
+        filePath: "sound/ImABeleiver.mp3",
         loop: true,
         singleInstance: true,
         volume: 0.1,
