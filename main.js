@@ -20,7 +20,7 @@ var inGameSetup = {
 
 var startupSetup = {
     preload: {
-        label: "Click To Start",
+        label: "Tap To Start",
         pos: { x: 640, y: 360 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
@@ -51,7 +51,7 @@ var homeScreenSetup = {
         rotation: 0
     },
     subTitle: {
-        label: "Click To Play",
+        label: "Tap To Play",
         pos: { x: 640, y: 560 },
         size: 60,
         color: { r: 0, g: 255, b: 0, a: 255 },
@@ -354,7 +354,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
             },
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
-                label: "Click to Continue",
+                label: "Tap to Continue",
                 pos: { x: 640, y: 420 },
                 color: structuredClone(commonColors.red),
                 size: 30,
@@ -500,7 +500,7 @@ function stepHud(dt) {
     renderActions.actions.push(
         {
             type: RENDERACTIONTYPE.RAT_TEXT_AT,
-            text: hudSetup.score.label + ("0000000000000" + String(gameObjects.score)).slice(-hudSetup.score.digits),
+            text: hudSetup.score.label +  ("0000000000000" + String(gameObjects.score)).slice(-hudSetup.score.digits),
             pos: hudSetup.score.pos,
             color: hudSetup.score.color,
             size: hudSetup.score.size,
