@@ -3,7 +3,6 @@ const _kLeaderboardStorageKey = "e-donkey_leaderboard"
 const _kMaxLeaderboardEntries = 30;
 
 var __leaderBoardData = {
-    minScore: 10000,
     entries:  [] // each entry is an objects with {score: integer, name: string}
 };
 
@@ -18,52 +17,42 @@ function leaderboardInit() {
 
 function leaderboardTryAddEntry(name, score) {
     console.log("LEADEROARD>> Attempt to insert name: " + name + ", score: " + score)
-    if (score < __leaderBoardData.minScore && __leaderBoardData.entries.length >= _kMaxLeaderboardEntries)
-    {
-        console.log("LEADEROARD>> Attempt failed, score is lower than min and theres no space");
-        return;
-    }
 
-    // TODO, cambiar para que insersion sea ordenado por tiempo, el mas nuevo arriba. keep min and max!!!
-    for (let i=0; i < __leaderBoardData.entries.length; i++) {
-        if (score > __leaderBoardData.entries[i].score) {
-            // Insert this new object
-            console.log("LEADEROARD>> Inserting at slot " + i);
-            
-            __leaderBoardData.entries.splice(i, 0, {score: score, name: name});
-            
-            // Make sure we keep the array max size
-            while (__leaderBoardData.entries.length > _kMaxLeaderboardEntries)
-                __leaderBoardData.entries.pop();
-
-            if (__leaderBoardData.entries[__leaderBoardData.entries.length-1].score > __leaderBoardData.minScore) {
-                __leaderBoardData.minScore = __leaderBoardData.entries[__leaderBoardData.entries.length-1].score;
-            }
-
-            _leaderboardDump(); // Dump Post
-            _leaderboardStore();
-            return;
-        }
-    }
-
-    if (__leaderBoardData.entries.length < _kMaxLeaderboardEntries) {
-        console.log("LEADEROARD>> Appending at slot " + __leaderBoardData.entries.length);
+    // No data, or the score to add is lower than the last item
+    if (__leaderBoardData.entries.length == 0 || __leaderBoardData.entries[__leaderBoardData.entries.length-1].score > score) {
+        console.log("LEADEROARD>> Pushing at the end");
         __leaderBoardData.entries.push({score: score, name: name});
-
-        if (score < __leaderBoardData.minScore) {
-            __leaderBoardData.minScore = score;
-        }
-        _leaderboardDump(); // Dump Post
-        _leaderboardStore();
-        return;
     }
+    // New score is bigger or equal the top score
+    else if ( __leaderBoardData.entries[0].score <= score)
+    {
+        console.log("LEADEROARD>> Inserting at slot 0");
+        __leaderBoardData.entries.splice(0, 0, {score: score, name: name});   
+    }
+    // The new value will be pushed in between
+    else 
+    {
+        for (let i = __leaderBoardData.entries.length-1; i >= 0; i--) {
+            if (score < __leaderBoardData.entries[i].score) {
+                // Insert this new object
+                console.log("LEADEROARD>> Inserting at slot " + (i + 1));
+                __leaderBoardData.entries.splice(i+1, 0, {score: score, name: name});
+                break;
+            }
+        }
+    }
+    
+    // Make sure we keep the array max size
+    while (__leaderBoardData.entries.length > _kMaxLeaderboardEntries)
+        __leaderBoardData.entries.pop();
 
+    _leaderboardDump(); // Dump Post
+    _leaderboardStore();
 }
 
 
 function leaderboardReset() {
     console.log("LEADEROARD>> Reseting")
-    __leaderBoardData.minScore = 10000;
     __leaderBoardData.entries = [];
     _leaderboardStore();
 }
@@ -75,7 +64,6 @@ function _leaderboardStore() {
 
 function _leaderboardDump() {
     console.log("LEADEROARD>> Dump")
-    console.log("LEADEROARD>>   MinScore: " + __leaderBoardData.minScore);
     for (let i=0; i < __leaderBoardData.entries.length; i++) { 
         console.log("LEADEROARD>>   [" + i + "]: {score: " + __leaderBoardData.entries[i].score + ", name: '" + __leaderBoardData.entries[i].name + "'}");
     }
