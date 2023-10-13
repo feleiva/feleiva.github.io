@@ -15,7 +15,8 @@ var aimPointSettup = {
 
 var inGameSetup = {
     targetSize: 30,
-    lives: 10
+    lives: 10,
+    controlIgnoreTime:.3, // How much we wait before allowing another input
 };
 
 var startupSetup = {
@@ -90,6 +91,40 @@ var hudSetup = {
     }
 }
 
+var darkVeilSetup= {
+    color:  { r: 128, g: 128, b: 128, a: 128},
+}
+
+var leaderboardSetup = {
+    title: {
+        pos: { x: 640, y: 50 },
+        label: "Best Players!",
+        size: 50,
+        color: commonColors.black,
+        align: "center",
+        rotation: 0
+    },
+    rows: {
+        startAt: { x: 50, y: 100 },
+        separation: { x: 0, y: 50},
+        size: 30,
+        color: commonColors.black,
+        rotation: 0
+    },
+    position: {
+        align: "right",
+        relativePos: { x: 0, y: 0},
+    },
+    names: {
+        align: "left",
+        relativePos: { x: 80, y: 0},
+    },
+    scores: {
+        align: "right",
+        relativePos: { x: 1180, y: 0},
+    },
+}
+
 
 // Game Objects
 const GAMEOBJECTTYPE = Object.freeze({
@@ -97,7 +132,8 @@ const GAMEOBJECTTYPE = Object.freeze({
     GOT_AIMPOINT: 2,
     GOT_IMAGE: 3,
     GOT_TEXT: 4,
-    GOT_GIF: 5
+    GOT_GIF: 5,
+    GOT_RECTANGLE: 6,
 });
 
 var gameObjects = {
@@ -106,6 +142,7 @@ var gameObjects = {
     score: 0,
     lives: 10,
     record: 0,
+    deadControlTime: 0,
     // Add other generic items here
     objects: []
 };
@@ -170,16 +207,29 @@ var sounds = {
         buffer: null,
         soundNode: null
     }
-}
+};
 
+function setDarkVeil() {
+    gameObjects.objects.push(
+        {
+            type: GAMEOBJECTTYPE.GOT_RECTANGLE,
+            pos: {x: 0, y: 0},
+            color: darkVeilSetup.color,
+            scale: {x: main2dContext.width, y: main2dContext.height},
+            behaviorQueue: [
+            ]
+        }
+    );
+}
 
 /// Main FSM States and code
 const GAMESTATES = Object.freeze({
     GS_WAIT_FOR_INPUT: 0,   // Empty screen, you need user interaction to start the audio
     GS_LOADING: 1,          // Process the loading queue, once done move to Home Screen
     GS_HOME_SCREEN: 2,      // First screen with real assets, ask the user to play
-    GS_IN_GAME: 3,      // In Game 
-    GS_FINISHED: 4          // Game Over, waits for input to move to Home Screen Again
+    GS_IN_GAME: 3,          // In Game 
+    GS_FINISHED: 4,         // Game Over, waits for input to move to Home Screen Again
+    GS_LEADERBOARD: 5       // Show the Leaderboard
 });
 
 FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT, 
@@ -344,6 +394,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
 
 FSMRegisterState(GAMESTATES.GS_FINISHED, 
     () => {
+        setDarkVeil();
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
@@ -372,6 +423,77 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     (dt) => {
         stepTarget(dt);
         stepHud(dt);
+        if (inputClickDetected()) {            
+            FSMTransitToState(GAMESTATES.GS_LEADERBOARD)
+        }
+    }, // OnStep
+    () => {
+        clearGameObjects();
+        //resouceSoundStop(sounds['inGameMusic']);
+    }, //OnExit
+)
+
+FSMRegisterState(GAMESTATES.GS_LEADERBOARD, 
+    () => {
+        setDarkVeil();
+        gameObjects.objects.push(
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: leaderboardSetup.title.label,
+                pos: leaderboardSetup.title.pos,
+                color: leaderboardSetup.title.color,
+                size: leaderboardSetup.title.size,
+                align: leaderboardSetup.title.align,
+                rotation: leaderboardSetup.title.rotation,
+                behaviorQueue: [
+                ]
+            }
+        );
+
+        let rowPosition = leaderboardSetup.rows.startAt;
+        for (let i = 0; i < __leaderBoardData.entries.length; i++)
+        {
+            let entry = __leaderBoardData.entries[i];
+            gameObjects.objects.push(
+                {
+                    type: GAMEOBJECTTYPE.GOT_TEXT,
+                    label: "" + (i+1),
+                    pos: v2Add(rowPosition, leaderboardSetup.position.relativePos),
+                    color: structuredClone(leaderboardSetup.rows.color),
+                    size: leaderboardSetup.rows.size,
+                    align: leaderboardSetup.position.align,
+                    rotation: leaderboardSetup.rows.rotation,
+                    behaviorQueue: [
+                    ]
+                },
+                {
+                    type: GAMEOBJECTTYPE.GOT_TEXT,
+                    label: entry.name,
+                    pos: v2Add(rowPosition, leaderboardSetup.names.relativePos),
+                    color: structuredClone(leaderboardSetup.rows.color),
+                    size: leaderboardSetup.rows.size,
+                    align: leaderboardSetup.names.align,
+                    rotation: leaderboardSetup.rows.rotation,
+                    behaviorQueue: [
+                    ]
+                },
+                {
+                    type: GAMEOBJECTTYPE.GOT_TEXT,
+                    label: entry.score,
+                    pos: v2Add(rowPosition, leaderboardSetup.scores.relativePos),
+                    color: structuredClone(leaderboardSetup.rows.color),
+                    size: leaderboardSetup.rows.size,
+                    align: leaderboardSetup.scores.align,
+                    rotation: leaderboardSetup.rows.rotation,
+                    behaviorQueue: [
+                    ]
+                }
+            );
+            rowPosition = v2Add(rowPosition, leaderboardSetup.rows.separation);
+        }
+    }, // OnEnter
+    (dt) => {
+        stepTarget(dt);
         if (inputClickDetected()) {            
             FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
         }
@@ -420,10 +542,15 @@ function stepAimPoint(dt) {
 
     renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, id: "tail" })
 
+    gameObjects.deadControlTime -= dt;
+    if (gameObjects.deadControlTime > 0)
+        return;
+
     if (Math.abs(currentAmplitude) <= gameObjects.target.size / 2) {
         renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.green, size: gameObjects.aimPoint.size })
         if (inputClickDetected()) {
             //console.log("Goal!!")
+            gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
             gameObjects.objects.push(
                 {
                     type: GAMEOBJECTTYPE.GOT_TEXT,
@@ -470,7 +597,7 @@ function stepAimPoint(dt) {
     else {
         renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
         if (inputClickDetected()) {
-            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: commonColors.red }
+            gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
             //console.log("Fail " + Math.abs(currentAmplitude))
             gameObjects.objects.push(
                 {
@@ -596,6 +723,15 @@ function stepObjects(dt) {
                     theObject.imgDiv.style.cssText = "position:absolute;top:" + theObject.pos.y + "px;left:"  + theObject.pos.x + "px;width:" + images[theObject.id].size.x + "px;height:" + images[theObject.id].size.y + "px;opacity:" + colorToAlpha01(theObject.color) + ";z-index:100;background:#000";
                 }
                 break;
+            case GAMEOBJECTTYPE.GOT_RECTANGLE:
+                renderActions.actions.push(
+                    {
+                        type: RENDERACTIONTYPE.RAT_RECTANGLE_AT,
+                        color: theObject.color, 
+                        pos: theObject.pos,
+                        scale: theObject.scale
+                    });
+                break;
         }
     }
 }
@@ -643,6 +779,12 @@ function main() {
 
     inputInit();
     leaderboardInit();
+
+    ///  Test code
+    leaderboardReset();
+    testArray = [10, 10, 10, 20, 5, 6, 7, 8, 4, 3, 2, 1, 1, 1, 1, 1, 6, 7, 8, 9, 10, 20, 20, 30 , 40 , 50, 70, 100, 10, 30, 30, 40, 50, 5, 6, 7, 8, 9, 10, 1, 1, 1, 100 ]
+    for (let i= 0; i< testArray.length; i++)
+        leaderboardTryAddEntry("Name_"+ i, testArray[i]);
 
     // Eveything is ok, prepare to run the game then register the input detection and trigger the game loop
     FSMTransitToState(GAMESTATES.GS_WAIT_FOR_INPUT);

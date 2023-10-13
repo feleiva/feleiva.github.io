@@ -18,7 +18,6 @@ function resouceSoundLoad(soundInfo) {
         console.log('ResourceSound: No audio context when loading audio file: ' + soundInfo.filePath);
         return;
     }
-        
 
     var request = new XMLHttpRequest();
     request.open('GET', soundInfo.filePath, true);

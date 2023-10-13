@@ -4,7 +4,8 @@ const RENDERACTIONTYPE = Object.freeze({
     RAT_CLEAR_NONE: 2,
     RAT_IMAGE_AT: 3,
     RAT_POINT_AT: 4,
-    RAT_TEXT_AT: 5
+    RAT_RECTANGLE_AT: 5,
+    RAT_TEXT_AT: 6
 });
 
 var renderActions = {
@@ -65,5 +66,9 @@ function renderAction(renderAction) {
         case RENDERACTIONTYPE.RAT_IMAGE_AT: // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
             main2dContext.context.drawImage(images[renderAction.id].image, renderAction.pos.x, renderAction.pos.y);
             break;
+        case RENDERACTIONTYPE.RAT_RECTANGLE_AT:
+            main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
+            main2dContext.context.fillRect(renderAction.pos.x, renderAction.pos.y, renderAction.scale.x, renderAction.scale.y);
+            break
     }
 }

@@ -46,7 +46,7 @@ function leaderboardTryAddEntry(name, score) {
     while (__leaderBoardData.entries.length > _kMaxLeaderboardEntries)
         __leaderBoardData.entries.pop();
 
-    _leaderboardDump(); // Dump Post
+    //_leaderboardDump(); // Dump Post
     _leaderboardStore();
 }
 
@@ -68,3 +68,11 @@ function _leaderboardDump() {
         console.log("LEADEROARD>>   [" + i + "]: {score: " + __leaderBoardData.entries[i].score + ", name: '" + __leaderBoardData.entries[i].name + "'}");
     }
 }
+
+///  Test code
+/*
+leaderboardReset();
+testArray = [10, 10, 10, 20, 5, 6, 7, 8, 4, 3, 2, 1, 1, 1, 1, 1, 6, 7, 8, 9, 10, 20, 20, 30 , 40 , 50, 70, 100, 10, 30, 30, 40, 50, 5, 6, 7, 8, 9, 10, 1, 1, 1, 100 ]
+for (let i= 0; i< testArray.length; i++)
+    leaderboardTryAddEntry("item_"+ i, testArray[i]);
+*/
