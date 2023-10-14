@@ -64,7 +64,18 @@ function renderAction(renderAction) {
             main2dContext.context.restore();
             break;
         case RENDERACTIONTYPE.RAT_IMAGE_AT: // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
-            main2dContext.context.drawImage(images[renderAction.id].image, renderAction.pos.x, renderAction.pos.y);
+            if (renderAction.rotation != 0)
+            {
+                main2dContext.context.save();
+                main2dContext.context.translate(renderAction.pos.x + images[renderAction.id].size.x/2 , renderAction.pos.y + images[renderAction.id].size.y/2);
+                main2dContext.context.rotate(renderAction.rotation);
+                main2dContext.context.drawImage(images[renderAction.id].image, -images[renderAction.id].size.x/2, -images[renderAction.id].size.y/2);
+                main2dContext.context.restore();
+            }
+            else
+            {
+                main2dContext.context.drawImage(images[renderAction.id].image, renderAction.pos.x, renderAction.pos.y);
+            }
             break;
         case RENDERACTIONTYPE.RAT_RECTANGLE_AT:
             main2dContext.context.fillStyle = colorToRGBA(renderAction.color)

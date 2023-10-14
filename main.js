@@ -43,12 +43,19 @@ var homeScreenSetup = {
     background: {
         image: "outgame-background-720"
     },
+    /*
     title: {
         label: "E-DONKEY",
         pos: { x: 640, y: 260 },
         size: 150,
         color: { r: 255, g: 255, b: 255, a: 255 },
         align: "center",
+        rotation: 0
+    },
+    */
+    logo: {
+        id: "logo",
+        pos: { x: 140, y: 0 },
         rotation: 0
     },
     subTitle: {
@@ -93,6 +100,7 @@ var hudSetup = {
 
 var darkVeilSetup= {
     color:  { r: 128, g: 128, b: 128, a: 128},
+    fadeTime: 0.3,
 }
 
 var leaderboardSetup = {
@@ -160,6 +168,12 @@ var images = {
         size: {x: 1280, y: 720},
         //loaded: false
     },
+    "logo": {
+        image: null,
+        path: "img/logo3.png",
+        size: {x: 1000, y: 300},
+        //loaded: false
+    },
     "tail": {
         image: null,
         path: "img/tail.png",
@@ -209,17 +223,33 @@ var sounds = {
     }
 };
 
-function setDarkVeil() {
-    gameObjects.objects.push(
-        {
-            type: GAMEOBJECTTYPE.GOT_RECTANGLE,
-            pos: {x: 0, y: 0},
-            color: darkVeilSetup.color,
-            scale: {x: main2dContext.width, y: main2dContext.height},
-            behaviorQueue: [
-            ]
-        }
-    );
+function setDarkVeil(fade) {
+    if (fade) {
+        gameObjects.objects.push(
+            {
+                type: GAMEOBJECTTYPE.GOT_RECTANGLE,
+                pos: {x: 0, y: 0},
+                color: {r: darkVeilSetup.color.r, g: darkVeilSetup.color.g, b: darkVeilSetup.color.b, a: 0},
+                scale: {x: main2dContext.width, y: main2dContext.height},
+                behaviorQueue: [
+                    { type: BEHAVIORTTYPES.BT_FADE, to: darkVeilSetup.color.a, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: darkVeilSetup.fadeTime },
+                ]
+            }
+        );
+    }
+    else
+    {
+        gameObjects.objects.push(
+            {
+                type: GAMEOBJECTTYPE.GOT_RECTANGLE,
+                pos: {x: 0, y: 0},
+                color: darkVeilSetup.color,
+                scale: {x: main2dContext.width, y: main2dContext.height},
+                behaviorQueue: [
+                ]
+            }
+        );
+    }
 }
 
 /// Main FSM States and code
@@ -324,9 +354,11 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
                 type: GAMEOBJECTTYPE.GOT_IMAGE,
                 pos: { x: 0, y: 0 },
                 id: homeScreenSetup.background.image,
+                rotation: 0,
                 behaviorQueue: [
                 ]
             },
+            /*
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
                 label: homeScreenSetup.title.label,
@@ -335,6 +367,18 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
                 size: homeScreenSetup.title.size,
                 align: homeScreenSetup.title.align,
                 rotation: homeScreenSetup.title.rotation,
+                behaviorQueue: [
+                    { type: BEHAVIORTTYPES.BT_ROTATE, from: 0, to: Math.PI / 24, interpolationType: INTERPOLATIONTYPE.IT_SINCURVE, time: 20 },
+                    { type: BEHAVIORTTYPES.BT_BLOCK },
+                    { type: BEHAVIORTTYPES.BT_LOOP },
+                ]
+            },
+            */
+            {
+                type: GAMEOBJECTTYPE.GOT_IMAGE,
+                pos: homeScreenSetup.logo.pos,
+                id: homeScreenSetup.logo.id,
+                rotation: homeScreenSetup.logo.rotation,
                 behaviorQueue: [
                     { type: BEHAVIORTTYPES.BT_ROTATE, from: 0, to: Math.PI / 24, interpolationType: INTERPOLATIONTYPE.IT_SINCURVE, time: 20 },
                     { type: BEHAVIORTTYPES.BT_BLOCK },
@@ -394,7 +438,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
 
 FSMRegisterState(GAMESTATES.GS_FINISHED, 
     () => {
-        setDarkVeil();
+        setDarkVeil(true);
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
@@ -435,7 +479,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
 
 FSMRegisterState(GAMESTATES.GS_LEADERBOARD, 
     () => {
-        setDarkVeil();
+        setDarkVeil(false);
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
@@ -522,7 +566,7 @@ FSMStep(0.15);
 function stepTarget(dt) {
 
     renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_NONE } // We use a full screen image. No need to clear
-    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, id: "ingame-background-720" })
+    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, rotation: 0, id: "ingame-background-720" })
     renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size * 3 })
     renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: commonColors.white, size: gameObjects.target.size* 2 })
     renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size })
@@ -540,7 +584,7 @@ function stepAimPoint(dt) {
     gameObjects.aimPoint.pos.x = gameObjects.target.pos.x - currentAmplitude * Math.sin(gameObjects.aimPoint.angle);
     gameObjects.aimPoint.pos.y = gameObjects.target.pos.y + currentAmplitude * Math.cos(gameObjects.aimPoint.angle);
 
-    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, id: "tail" })
+    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, rotation: 0, id: "tail" })
 
     gameObjects.deadControlTime -= dt;
     if (gameObjects.deadControlTime > 0)
@@ -707,7 +751,8 @@ function stepObjects(dt) {
                     {
                         type: RENDERACTIONTYPE.RAT_IMAGE_AT,
                         pos: theObject.pos,
-                        id: theObject.id
+                        id: theObject.id,
+                        rotation: theObject.rotation,
                     });
                 break;
             case GAMEOBJECTTYPE.GOT_GIF:

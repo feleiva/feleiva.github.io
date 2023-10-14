@@ -1,6 +1,7 @@
 
 
 var __clickDetected = false;
+var __keysDetected = [];
 var __gamepadButtonEvent = false;
 var __gamepadButtonPressed = false;
 var __gamepadConnected = false;
@@ -10,6 +11,10 @@ var __connectedGamepads = [];
 /// Even Handling
 function inputOnClick() {
     __clickDetected = true;
+}
+
+function inputOnKey(event) {
+    __keysDetected.push(event.key);
 }
 
 function inputOnGamePadConnected(event) {
@@ -47,6 +52,13 @@ function inputInit() {
         true
     )
 
+    // Keyboard
+    window.keypress(
+        "touchstart", // Need this to get the event detected on Apple mobile devices
+        inputOnKey,
+        true
+    )
+
     window.addEventListener('gamepadconnected', inputOnGamePadConnected);
     window.addEventListener('gamepaddisconnected', inputOnGamePadDisConnected);
 }
@@ -76,5 +88,6 @@ function inputClickDetected() {
 
 function inputClearClick() {
     __clickDetected         = false;
-    __gamepadButtonEvent = false;
+    __keysDetected          = [];
+    __gamepadButtonEvent    = false;
 }
