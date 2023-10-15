@@ -1,7 +1,8 @@
 
 
 var __clickDetected = false;
-var __keysDetected = [];
+var __keysDetected = []; // This is used to control keys which are hold, keys enter with the keyDown event and leave with the keyUp
+var __keysPressed = []; // This is used to control keys which are pressed, keys enter with the keyPress event
 var __gamepadButtonEvent = false;
 var __gamepadButtonPressed = false;
 var __gamepadConnected = false;
@@ -13,8 +14,24 @@ function inputOnClick() {
     __clickDetected = true;
 }
 
-function inputOnKey(event) {
+function inputOnKeyDown(event) {
+    //console.log("INPUT>> Event Key Down: " + event.key + " Code: " + event.keyCode);
+    let index = __keysDetected.indexOf(event.key);
+    if (index >= 0) {
+        // Key already registered
+        return;
+    }
     __keysDetected.push(event.key);
+}
+
+function inputOnKeyUp(event) {
+    //console.log("INPUT>> Event Key Down: " + event.key + " Code: " + event.keyCode);
+    __keysPressed.push(event.key);
+    let index = __keysDetected.indexOf(event.key);
+    if (index >= 0) {
+        __keysDetected.splice(index, 1);
+        return;
+    }
 }
 
 function inputOnGamePadConnected(event) {
@@ -40,6 +57,7 @@ function inputOnGamePadDisConnected(event) {
 }
 
 function inputInit() {
+    // Mouse Touch Events
     window.addEventListener(
         "mousedown", // Mouse down is more acurate than click, which triggers on mouse up
         inputOnClick,
@@ -53,14 +71,28 @@ function inputInit() {
     )
 
     // Keyboard
-    window.keypress(
-        "touchstart", // Need this to get the event detected on Apple mobile devices
-        inputOnKey,
+    window.addEventListener(
+        "keydown", // Need this to get the event detected on Apple mobile devices
+        inputOnKeyDown,
         true
     )
 
-    window.addEventListener('gamepadconnected', inputOnGamePadConnected);
-    window.addEventListener('gamepaddisconnected', inputOnGamePadDisConnected);
+    window.addEventListener(
+        "keyup", // Need this to get the event detected on Apple mobile devices
+        inputOnKeyUp,
+        true
+    )
+
+    // GamePads
+    window.addEventListener(
+            "gamepadconnected", 
+            inputOnGamePadConnected
+    );
+
+    window.addEventListener(
+        "gamepaddisconnected",
+        inputOnGamePadDisConnected
+    );
 }
 
 function inputStep() {
@@ -86,8 +118,16 @@ function inputClickDetected() {
     return __clickDetected;
 }
 
+function inputKeyDetected(key) {
+    return (__keysDetected.indexOf(key) >= 0);
+}
+
+function inputKeyPressed(key) {
+    return (__keysPressed.indexOf(key) >= 0);
+}
+
 function inputClearClick() {
     __clickDetected         = false;
-    __keysDetected          = [];
     __gamepadButtonEvent    = false;
+    __keysPressed           = []
 }

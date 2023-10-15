@@ -151,6 +151,7 @@ var gameObjects = {
     lives: 10,
     record: 0,
     deadControlTime: 0,
+    playerName: "",
     // Add other generic items here
     objects: []
 };
@@ -252,6 +253,22 @@ function setDarkVeil(fade) {
     }
 }
 
+function askPlayerName() {
+    inputText = document.getElementById("fname");
+    if (inputText) {
+        document.getElementById("playerName").style.display = 'block';
+        inputText.value = "";
+        inputText.focus();    
+    }
+}
+
+function setPlayerName(playerName) {
+    if (playerName != "") {
+        gameObjects.playerName = playerName;
+        document.getElementById("playerName").style.display = 'none';
+    }
+}  
+
 /// Main FSM States and code
 const GAMESTATES = Object.freeze({
     GS_WAIT_FOR_INPUT: 0,   // Empty screen, you need user interaction to start the audio
@@ -266,12 +283,12 @@ FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT,
     null, // OnEnter
     (dt) => { 
         if (inputClickDetected()) {
-            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+            __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
             FSMTransitToState(GAMESTATES.GS_LOADING)
         }
         else {
-            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-            renderActions.actions.push(
+            __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+            __renderActions.actions.push(
                 {
                     type: RENDERACTIONTYPE.RAT_TEXT_AT,
                     text: startupSetup.preload.label,
@@ -290,7 +307,7 @@ FSMRegisterState(GAMESTATES.GS_LOADING,
     () => { 
          // Init Audio system, can only do this once the user has interacted
          resourceSoundInit();
-         renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+         __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
 
          for (const imageId in images) {
              images[imageId].image = new Image();
@@ -321,15 +338,15 @@ FSMRegisterState(GAMESTATES.GS_LOADING,
         }
 
         if (countTotal == countReady) {
-            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+            __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
             FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
         }
         else {
             greyLevel = Math.trunc((255 / countTotal) * countReady)
-            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: { r: greyLevel, g: greyLevel, b: greyLevel, a: 255 } }
+            __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_COLOR, color: { r: greyLevel, g: greyLevel, b: greyLevel, a: 255 } }
         }
 
-        renderActions.actions.push(
+        __renderActions.actions.push(
             {
                 type: RENDERACTIONTYPE.RAT_TEXT_AT,
                 text: startupSetup.loading.label,
@@ -407,7 +424,7 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
     }, // OnEnter
     (dt) => {
         if (inputClickDetected()) {
-            renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+            __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
             clearGameObjects();
             FSMTransitToState(GAMESTATES.GS_IN_GAME);
         }
@@ -424,6 +441,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         gameObjects.score = 0;
         gameObjects.record = localStorage.getItem('record') ? parseInt(localStorage.getItem('record')) : 0;
         gameObjects.lives = inGameSetup.lives;
+        gameObjects.playerName = "";
 
         // Start Ingame Music
         resouceSoundPlay(sounds['inGameMusic']);
@@ -439,6 +457,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
 FSMRegisterState(GAMESTATES.GS_FINISHED, 
     () => {
         setDarkVeil(true);
+        askPlayerName();
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
@@ -453,7 +472,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
             },
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
-                label: "Tap to Continue",
+                label: "Write your name and press Enter to Continue",
                 pos: { x: 640, y: 420 },
                 color: structuredClone(commonColors.red),
                 size: 30,
@@ -467,7 +486,8 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     (dt) => {
         stepTarget(dt);
         stepHud(dt);
-        if (inputClickDetected()) {            
+        if (inputKeyPressed("Enter") && gameObjects.playerName != "") {   
+            leaderboardTryAddEntry(gameObjects.playerName, gameObjects.score);         
             FSMTransitToState(GAMESTATES.GS_LEADERBOARD)
         }
     }, // OnStep
@@ -538,7 +558,7 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
     }, // OnEnter
     (dt) => {
         stepTarget(dt);
-        if (inputClickDetected()) {            
+        if (inputKeyPressed("Enter")) {            
             FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
         }
     }, // OnStep
@@ -565,11 +585,11 @@ FSMStep(0.15);
 // Step for different object types
 function stepTarget(dt) {
 
-    renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_NONE } // We use a full screen image. No need to clear
-    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, rotation: 0, id: "ingame-background-720" })
-    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size * 3 })
-    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: commonColors.white, size: gameObjects.target.size* 2 })
-    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size })
+    __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_NONE } // We use a full screen image. No need to clear
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, rotation: 0, id: "ingame-background-720" })
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size * 3 })
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: commonColors.white, size: gameObjects.target.size* 2 })
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size })
 }
 
 function stepAimPoint(dt) {
@@ -584,14 +604,14 @@ function stepAimPoint(dt) {
     gameObjects.aimPoint.pos.x = gameObjects.target.pos.x - currentAmplitude * Math.sin(gameObjects.aimPoint.angle);
     gameObjects.aimPoint.pos.y = gameObjects.target.pos.y + currentAmplitude * Math.cos(gameObjects.aimPoint.angle);
 
-    renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, rotation: 0, id: "tail" })
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, rotation: 0, id: "tail" })
 
     gameObjects.deadControlTime -= dt;
     if (gameObjects.deadControlTime > 0)
         return;
 
     if (Math.abs(currentAmplitude) <= gameObjects.target.size / 2) {
-        renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.green, size: gameObjects.aimPoint.size })
+        __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.green, size: gameObjects.aimPoint.size })
         if (inputClickDetected()) {
             //console.log("Goal!!")
             gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
@@ -639,7 +659,7 @@ function stepAimPoint(dt) {
         }
     }
     else {
-        renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
+        __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
         if (inputClickDetected()) {
             gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
             //console.log("Fail " + Math.abs(currentAmplitude))
@@ -672,7 +692,7 @@ function stepAimPoint(dt) {
 }
 
 function stepHud(dt) {
-    renderActions.actions.push(
+    __renderActions.actions.push(
         {
             type: RENDERACTIONTYPE.RAT_TEXT_AT,
             text: hudSetup.score.label +  ("0000000000000" + String(gameObjects.score)).slice(-hudSetup.score.digits),
@@ -682,7 +702,7 @@ function stepHud(dt) {
             align: hudSetup.score.align,
             rotation: hudSetup.score.rotation
         });
-    renderActions.actions.push(
+    __renderActions.actions.push(
         {
             type: RENDERACTIONTYPE.RAT_TEXT_AT,
             text: hudSetup.record.label + ("0000000000000" + String(gameObjects.record)).slice(-hudSetup.record.digits),
@@ -692,7 +712,7 @@ function stepHud(dt) {
             align: hudSetup.record.align,
             rotation: hudSetup.record.rotation
         });
-    renderActions.actions.push(
+    __renderActions.actions.push(
         {
             type: RENDERACTIONTYPE.RAT_TEXT_AT,
             text: hudSetup.lives.label + ("00000" + String(gameObjects.lives)).slice(-hudSetup.lives.digits),
@@ -735,7 +755,7 @@ function stepObjects(dt) {
 
         switch (theObject.type) {
             case GAMEOBJECTTYPE.GOT_TEXT:
-                renderActions.actions.push(
+                __renderActions.actions.push(
                     {
                         type: RENDERACTIONTYPE.RAT_TEXT_AT,
                         text: theObject.label,
@@ -747,7 +767,7 @@ function stepObjects(dt) {
                     });
                 break;
             case GAMEOBJECTTYPE.GOT_IMAGE:
-                renderActions.actions.push(
+                __renderActions.actions.push(
                     {
                         type: RENDERACTIONTYPE.RAT_IMAGE_AT,
                         pos: theObject.pos,
@@ -769,7 +789,7 @@ function stepObjects(dt) {
                 }
                 break;
             case GAMEOBJECTTYPE.GOT_RECTANGLE:
-                renderActions.actions.push(
+                __renderActions.actions.push(
                     {
                         type: RENDERACTIONTYPE.RAT_RECTANGLE_AT,
                         color: theObject.color, 
@@ -795,6 +815,7 @@ function step(curentTime) {
 
     FSMStep(dt); // Step the game logic
     stepObjects(dt);
+    debugToolsStep(dt);
 
     // Clear the click flag 
     inputClearClick();

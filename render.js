@@ -8,21 +8,21 @@ const RENDERACTIONTYPE = Object.freeze({
     RAT_TEXT_AT: 6
 });
 
-var renderActions = {
+var __renderActions = {
     clearAction: {},
     actions: []
 };
 
 function render() {
-    renderClear(renderActions.clearAction)
-    for (ra of renderActions.actions) {
+    renderClear(__renderActions.clearAction)
+    for (ra of __renderActions.actions) {
         renderAction(ra)
     }
 }
 
 function renderFlush() {
-    renderActions.clearAction = {};
-    renderActions.actions = [];
+    __renderActions.clearAction = {};
+    __renderActions.actions = [];
 }
 
 function renderClear(clearObject) {

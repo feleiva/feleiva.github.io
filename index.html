@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
     <title>E-DONKEY 1.0</title>
     <script type="text/javascript" main2dContext src="color.js"></script>
+    <script type="text/javascript" main2dContext src="debugTools.js"></script>
     <script type="text/javascript" main2dContext src="fsm.js"></script>
     <script type="text/javascript" main2dContext src="input.js"></script>
     <script type="text/javascript" main2dContext src="leaderboard.js"></script>
@@ -18,17 +19,17 @@
 </head>
 <body onload="main();" style="touch-action: manipulation;padding:0;margin:0;">
     <canvas id="mainCamvas" width="1280" height="720">Your Browser does not support canvas</canvas>
-    <div style="
+    <div id="playerName" style="
         display:none;
         position: fixed;
-        top: 300px;
+        top: 500px;
         left: 390px;
         padding: 100px;
         background-color: lightgrey;
         border: 3px solid #000000">
         <label for="fname">Your Name</label>
         <input type="text" id="fname" name="fname">
-        <button type="button" onclick="alert(document.getElementById('fname').value)">Save</button>
+        <button type="button" onclick="setPlayerName(document.getElementById('fname').value)">Save</button>
     </div>
 </body>
 </html>
