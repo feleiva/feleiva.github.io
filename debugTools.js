@@ -37,7 +37,7 @@ function debugToolsStep(dt) {
         console.log("DEBUGTOOLS>> Reset Leaderboards and Record")
         leaderboardReset();
         gameObjects.record = gameObjects.score;
-        localStorage.setItem('record', String(gameObjects.record))
+        localStorage.setItem('record', "0")
         __debugToolsState.resetLeaderboardsTime = 0;
     }
 
