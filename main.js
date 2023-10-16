@@ -19,7 +19,7 @@ var emittersTemplates = {
         [-1, 1],     // birthy range from game object origin 
         [-35, 35],  // velX range at birth  
         [-400, -500],  // velY range at birth 
-        [1, 2],     // radious Range
+        [1, 3],     // radious Range
         1.5,         // Emit Time
         1000,         // emit Rate
         [1, 1.2],   // Particle life Range
