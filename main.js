@@ -539,14 +539,6 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
                     { type: BEHAVIORTTYPES.BT_WAIT, time: 0.1 },
                     { type: BEHAVIORTTYPES.BT_LOOP },
                 ]
-            },
-            {
-                type: GAMEOBJECTTYPE.GOT_PARTICLE_EMITTER,
-                pos: {x: 300, y: 720},
-                emitterTemplate: emittersTemplates.fire,
-                behaviorQueue: [
-                    { type: BEHAVIORTTYPES.BT_KILL, time: 4.5 }
-                ]
             }
         );
     }, // OnEnter
