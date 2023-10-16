@@ -2,6 +2,7 @@
 
 var __clickDetected = false;
 var __touchDetected = false;
+var __touchDetectedPos = {x: -1, y: -1}
 var __keysDetected = []; // This is used to control keys which are hold, keys enter with the keyDown event and leave with the keyUp
 var __keysPressed = []; // This is used to control keys which are pressed, keys enter with the keyPress event
 var __gamepadButtonEvent = false;
@@ -12,13 +13,20 @@ var __connectedGamepads = [];
 
 /// Even Handling
 function inputOnClick() {
-    console.log("INPUT>> Event Click");
     __clickDetected = true;
 }
 
-function inputOnTouch() {
-    console.log("INPUT>> Event TOuch");
-    __touchDetected = true;
+function inputOnTouchStart(event) {
+    __clickDetected         = true;
+    __touchDetectedPos.x    = event.touches[0].pageX;
+    __touchDetectedPos.y    = event.touches[0].pageY;
+}
+
+function inputOnTouchEnd(event) {
+    touchEndX = event.changedTouches[0].pageX;
+    touchEndY = event.changedTouches[0].pageY;
+    if ( ((touchEndX - __touchDetectedPos.x) * (touchEndX - __touchDetectedPos.x) + (touchEndY - __touchDetectedPos.y) * (touchEndY - __touchDetectedPos.y)) < 400)
+        __touchDetected = true;
 }
 
 function inputOnKeyDown(event) {
@@ -73,13 +81,13 @@ function inputInit() {
 
     window.addEventListener(
         "touchstart", // Need this to get the event detected on Apple mobile devices
-        inputOnClick,
+        inputOnTouchStart,
         true
     )
 
     window.addEventListener(
         "touchend", // Need this to get the event detected on Apple mobile devices
-        inputOnTouch,
+        inputOnTouchEnd,
         true
     )
 
