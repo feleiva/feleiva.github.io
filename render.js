@@ -5,7 +5,8 @@ const RENDERACTIONTYPE = Object.freeze({
     RAT_IMAGE_AT: 3,
     RAT_POINT_AT: 4,
     RAT_RECTANGLE_AT: 5,
-    RAT_TEXT_AT: 6
+    RAT_TEXT_AT: 6,
+    RAT_PARTICLES_AT: 7
 });
 
 var __renderActions = {
@@ -80,6 +81,16 @@ function renderAction(renderAction) {
         case RENDERACTIONTYPE.RAT_RECTANGLE_AT:
             main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
             main2dContext.context.fillRect(renderAction.pos.x, renderAction.pos.y, renderAction.scale.x, renderAction.scale.y);
+            break
+        case RENDERACTIONTYPE.RAT_PARTICLES_AT:
+            // This can be largelly optimized if we knew all particles are the same color
+            for (pt of renderAction.particles) {
+                main2dContext.context.fillStyle = colorToRGBA(pt.color)
+                main2dContext.context.beginPath();
+                main2dContext.context.arc(renderAction.pos.x + pt.pos.x, renderAction.pos.y + pt.pos.y, pt.radius, 0, 2*Math.PI)
+                main2dContext.context.closePath();
+                main2dContext.context.fill();
+            }
             break
     }
 }

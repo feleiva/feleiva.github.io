@@ -13,6 +13,21 @@ var aimPointSettup = {
     dificultiFactor: 0.03,          // How much harder it becomes with every new point
 };
 
+var emittersTemplates = {
+    fire: new EmitterTemplate(
+        [-5, 5],    // birthX range from game object origin 
+        [-2, 2],     // birthy range from game object origin 
+        [-10, 10],  // velX range at birth  
+        [-300, -350],  // velY range at birth 
+        [2, 4],     // radious Range
+        120,         // emit Rate
+        [3, 4],   // life Range
+        {r: 255, g: 95, b: 31, a: 255}, // Birth Color
+        {r: 255, g: 241, b: 18, a: 0} // Death Color
+    ), 
+}
+
+
 var scoreTextsSetup = {
     hitTexts: {
         pos: { x: 730, y: 360 },
@@ -204,6 +219,7 @@ const GAMEOBJECTTYPE = Object.freeze({
     GOT_TEXT: 4,
     GOT_GIF: 5,
     GOT_RECTANGLE: 6,
+    GOT_PARTICLE_EMITTER: 7,
 });
 
 var gameObjects = {
@@ -501,6 +517,13 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
                     { type: BEHAVIORTTYPES.BT_BLOCK },
                     { type: BEHAVIORTTYPES.BT_WAIT, time: 0.1 },
                     { type: BEHAVIORTTYPES.BT_LOOP },
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_PARTICLE_EMITTER,
+                pos: {x: 50, y: 720},
+                emitterTemplate: emittersTemplates.fire,
+                behaviorQueue: [
                 ]
             }
         );
@@ -882,6 +905,22 @@ function stepObjects(dt) {
                         color: theObject.color, 
                         pos: theObject.pos,
                         scale: theObject.scale
+                    });
+                break;
+            case GAMEOBJECTTYPE.GOT_PARTICLE_EMITTER:
+                if (!("emiterData" in theObject)) {
+                    theObject.emiterData = {
+                        particles: [],
+                        emitTime: 0
+                    }
+                }
+                
+                particlesStep(dt, theObject.emitterTemplate, theObject.emiterData);
+                __renderActions.actions.push(
+                    {
+                        type: RENDERACTIONTYPE.RAT_PARTICLES_AT,
+                        pos: theObject.pos,
+                        particles: theObject.emiterData.particles // this is a reference, right?
                     });
                 break;
         }
