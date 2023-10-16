@@ -1,10 +1,5 @@
 function particlesInterpolate(factor, from, to) { 
-    if (from > to) {
-        return from - (factor * (from - to));
-    }
-    else {
-        return (factor * (to - from)) + from;
-    }
+    return from + (factor * (to - from));
 }
 
 function particlesRandomFromRange(range) { // range is [min, max]

@@ -87,13 +87,30 @@ var scoreTextsSetup = {
             { type: BEHAVIORTTYPES.BT_BLOCK },
             { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
         ]
+    },
+    timeLimit: {
+        pos: { x: 570, y: 460 },
+        color: commonColors.red,
+        size: 150,
+        align: "center",
+        rotation: 0,
+        behaviorQueue: [
+            { type: BEHAVIORTTYPES.BT_SCALE, to: 80, interpolationType: INTERPOLATIONTYPE.IT_EASIOUT, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_FADE, from: 0, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_WAIT, time: 0.6 },
+            { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_BLOCK },
+            { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+        ]
     }
 }
 
 var inGameSetup = {
     targetSize: 30,
     lives: 10,
-    controlIgnoreTime:.3, // How much we wait before allowing another input
+    controlIgnoreTime:.3,           // How much we wait before allowing another input
+    controlEventTimeout: 15,        // How long we wait for input before Game Over
+    controlEventLabelStartAt: 5,    // How much time remaining before showing the timer on screen
 };
 
 var startupSetup = {
@@ -230,6 +247,7 @@ var gameObjects = {
     lives: 10,
     record: 0,
     deadControlTime: 0,
+    controlTimmeout: 0,
     playerName: "",
     // Add other generic items here
     objects: []
@@ -549,6 +567,8 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         gameObjects.record = localStorage.getItem('record') ? parseInt(localStorage.getItem('record')) : 0;
         gameObjects.lives = inGameSetup.lives;
         gameObjects.playerName = "";
+        gameObjects.deadControlTime = 0;
+        gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
 
         // Start Ingame Music
         resouceSoundPlay(sounds['inGameMusic']);
@@ -565,6 +585,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     () => {
         setDarkVeil(true);
         askPlayerName();
+        gameObjects.lives = 0;
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
@@ -619,6 +640,17 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
                 size: leaderboardSetup.title.size,
                 align: leaderboardSetup.title.align,
                 rotation: leaderboardSetup.title.rotation,
+                behaviorQueue: [
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: "Press Enter to Continue",
+                pos: { x: 640, y: 690 },
+                color: structuredClone(commonColors.black),
+                size: 30,
+                align: "center",
+                rotation: 0,
                 behaviorQueue: [
                 ]
             }
@@ -716,6 +748,31 @@ function stepAimPoint(dt) {
 
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, rotation: 0, id: "tail" })
 
+    let prevControlTimeout = gameObjects.controlTimmeout;
+    gameObjects.controlTimmeout -= dt;
+    if (gameObjects.controlTimmeout < inGameSetup.controlEventLabelStartAt
+        && gameObjects.controlTimmeout >= 0
+        && Math.floor(gameObjects.controlTimmeout) != Math.floor(prevControlTimeout))
+        {
+            console.log("Timeout: " + Math.floor(prevControlTimeout));
+            gameObjects.objects.push(
+                {
+                    type: GAMEOBJECTTYPE.GOT_TEXT,
+                    label: "" + Math.floor(prevControlTimeout),
+                    pos: structuredClone(scoreTextsSetup.timeLimit.pos),
+                    color: structuredClone(scoreTextsSetup.timeLimit.color),
+                    size: scoreTextsSetup.timeLimit.size,
+                    align: scoreTextsSetup.timeLimit.align,
+                    rotation: scoreTextsSetup.timeLimit.rotation,
+                    behaviorQueue: structuredClone(scoreTextsSetup.timeLimit.behaviorQueue)
+                }
+            );
+        }
+    if (gameObjects.controlTimmeout <= 0) {
+        FSMTransitToState(gameState = GAMESTATES.GS_FINISHED);
+        return;
+    }
+
     gameObjects.deadControlTime -= dt;
     if (gameObjects.deadControlTime > 0)
         return;
@@ -727,6 +784,7 @@ function stepAimPoint(dt) {
             gameObjects.score++;
             gameObjects.hitsInARow++;
             gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
+            gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
             gameObjects.objects.push(
                 {
                     type: GAMEOBJECTTYPE.GOT_TEXT,
@@ -779,6 +837,7 @@ function stepAimPoint(dt) {
         if (inputClickDetected()) {
             gameObjects.hitsInARow = 0;
             gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
+            gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
             //console.log("Fail " + Math.abs(currentAmplitude))
             gameObjects.objects.push(
                 {
@@ -796,6 +855,7 @@ function stepAimPoint(dt) {
             resouceSoundPlay(sounds['hitFail']);
             if (gameObjects.lives <= 0) {
                 FSMTransitToState(gameState = GAMESTATES.GS_FINISHED);
+                return;
             }
         }
     }

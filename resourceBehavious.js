@@ -38,7 +38,12 @@ function interpolate2d(from, to, type, interpolator) {
 function interpolate1d(from, to, type, interpolator) {
     switch (type) {
         case INTERPOLATIONTYPE.IT_LINEAL:
-            return from + (to - from) * interpolator;
+            if (from > to) {
+                return from - (interpolator * (from - to));
+            }
+            else {
+                return from + (to - from) * interpolator;
+            }
             break;
         case INTERPOLATIONTYPE.IT_EASIIN:
             factor = -(Math.cos(Math.PI * interpolator) - 1) / 2;
