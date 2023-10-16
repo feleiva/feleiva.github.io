@@ -400,7 +400,7 @@ const GAMESTATES = Object.freeze({
 FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT, 
     null, // OnEnter
     (dt) => { 
-        if (inputClickDetected()) {
+        if (inputTapDetected()) {
             __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
             FSMTransitToState(GAMESTATES.GS_LOADING)
         }
@@ -541,7 +541,7 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
         );
     }, // OnEnter
     (dt) => {
-        if (inputClickDetected()) {
+        if (inputTapDetected()) {
             __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
             clearGameObjects();
             FSMTransitToState(GAMESTATES.GS_IN_GAME);
@@ -703,7 +703,8 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
     }, // OnEnter
     (dt) => {
         stepTarget(dt);
-        if (inputKeyPressed("Enter")) {            
+        if (inputKeyPressed("Enter") 
+            || inputTouchDetected() ) {            
             FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
         }
     }, // OnStep
@@ -782,7 +783,7 @@ function stepAimPoint(dt) {
 
     if (Math.abs(currentAmplitude) <= gameObjects.target.size / 2) {
         __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.green, size: gameObjects.aimPoint.size })
-        if (inputClickDetected()) {
+        if (inputTapDetected()) {
             //console.log("Goal!!")
             gameObjects.score++;
             gameObjects.hitsInARow++;
@@ -853,7 +854,7 @@ function stepAimPoint(dt) {
     }
     else {
         __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
-        if (inputClickDetected()) {
+        if (inputTapDetected()) {
             gameObjects.hitsInARow = 0;
             gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
             gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
