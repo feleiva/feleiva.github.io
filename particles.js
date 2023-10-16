@@ -3,25 +3,18 @@ function particlesInterpolate(factor, from, to) {
 }
 
 function particlesRandomFromRange(range) { // range is [min, max]
-    if (range[0] > range[1]) {
-        min = range[1];
-        max = range[0];
-    }
-    else {
-        min = range[0];
-        max = range[1];
-    }
-    return (Math.random() * (max - min)) + min;
+    return (Math.random() * (range[1] - range[0])) + range[0];
 }
 
-function EmitterTemplate(posXRange, posYRange, velXRange, velYRange, radiusRange, rate, lifeRange, colorFrom, colorTo) {
+function EmitterTemplate(posXRange, posYRange, velXRange, velYRange, radiusRange, emitTime, rate, lifeRange, colorFrom, colorTo) {
     this.posXRange      = posXRange;
     this.posYRange      = posYRange;
     this.velXRange      = velXRange;
     this.velYRange      = velYRange;
     this.radiusRange    = radiusRange;
+    this.emitTime       = emitTime;
     this.rate           = rate;
-    this.emitTime       = 1/rate;
+    this.emitTimeSpan   = 1/rate;
     this.lifeRange      = lifeRange;
     this.colorFrom      = colorFrom;
     this.colorTo        = colorTo;
@@ -38,11 +31,15 @@ function Particle(template) {
 }
 
 function particlesStep(dt, emiterTemplate, emiterData) {
-    emiterData.emitTime += dt;
-    while(emiterData.emitTime > emiterTemplate.emitTime) {
-        emiterData.emitTime -= emiterTemplate.emitTime;
-        emiterData.particles.push(new Particle(emiterTemplate))
-    }
+    // Negative emitTime on the template means permanent emission.
+    emiterData.timeEmitting += dt;
+    if (emiterTemplate.emitTime < 0 || emiterData.timeEmitting <= emiterTemplate.emitTime) {
+        emiterData.nextEmissionTimer += dt;
+        while(emiterData.nextEmissionTimer > emiterTemplate.emitTimeSpan) {
+            emiterData.nextEmissionTimer -= emiterTemplate.emitTimeSpan;
+            emiterData.particles.push(new Particle(emiterTemplate))
+        }
+    } 
 
     for (ptIndex = emiterData.particles.length - 1; ptIndex >= 0; ptIndex--) {
         // Update lifetime and kill expired ones
