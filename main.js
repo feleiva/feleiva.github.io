@@ -13,6 +13,68 @@ var aimPointSettup = {
     dificultiFactor: 0.03,          // How much harder it becomes with every new point
 };
 
+var scoreTextsSetup = {
+    hitTexts: {
+        pos: { x: 730, y: 360 },
+        color: commonColors.green,
+        size: 50,
+        align: "left",
+        rotation: 0,
+        labels: [
+            ["Good!", "Score!", "Bravo!", "Well Done!"], // First hit
+            ["Great!" ,"Nice Job!", "Double Hit!", "You got this"], // 2 hits in a row
+            ["Impresive!", "Triple Combo", "Keep the flow!"], // 3 hits in a row
+            ["Outstanding!", "That shoudl hurt!", "Wow 4 in a row"], // 4 hits in a row 
+            ["Aboslutelly Awesome!", "Unstoppable!", "You are rocking!", "Keep on keeping on!", "Hats off to you!", "This is your day!  "] // 5 hits in a row or more
+        ],
+        behaviorQueue: [
+            { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_BLOCK },
+            { type: BEHAVIORTTYPES.BT_MOVE_ACCEL, accel: { x: 0, y: -200 }, time: 1.0 },
+            { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
+            { type: BEHAVIORTTYPES.BT_BLOCK },
+            { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+        ]
+    },
+    missTexts: {
+        pos: { x: 730, y: 360 },
+        color: commonColors.red,
+        size: 50,
+        align: "left",
+        rotation: 0,
+        labels: [ // A random one is chosen on every failure
+            "Keep Trying!",
+            "You can do it!",
+            "Don't give up!",
+            "Sooo close!!",
+            "Failure is success in progress."
+        ],
+        behaviorQueue: [
+            { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_BLOCK },
+            { type: BEHAVIORTTYPES.BT_MOVE_ACCEL, accel: { x: 0, y: 200 }, time: 1.0 },
+            { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
+            { type: BEHAVIORTTYPES.BT_BLOCK },
+            { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+        ]
+    },
+    newRecord: {
+        pos: { x: 640, y: 150 },
+        color: commonColors.white,
+        size: 80,
+        align: "center",
+        rotation: 0,
+        label: "New Record",
+        behaviorQueue: [
+            { type: BEHAVIORTTYPES.BT_SCALE, from: 150, to: 80, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_WAIT, time: 1.8 },
+            { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_BLOCK },
+            { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+        ]
+    }
+}
+
 var inGameSetup = {
     targetSize: 30,
     lives: 10,
@@ -148,6 +210,7 @@ var gameObjects = {
     target: {},
     aimPoint: {},
     score: 0,
+    hitsInARow: 0,
     lives: 10,
     record: 0,
     deadControlTime: 0,
@@ -268,6 +331,26 @@ function setPlayerName(playerName) {
         document.getElementById("playerName").style.display = 'none';
     }
 }  
+
+function getRndInteger(min, max) { // Max is included
+    max = max + 1;
+    return Math.floor(Math.random() * (max - min) ) + min;
+}
+
+function getRandomSuccessText(hitsInARow) {
+    let numSlots = scoreTextsSetup.hitTexts.labels.length;
+    let selectedSlot = hitsInARow;
+    if (selectedSlot > numSlots)
+        selectedSlot = numSlots;
+
+    let numTexts = scoreTextsSetup.hitTexts.labels[selectedSlot-1].length;
+    return scoreTextsSetup.hitTexts.labels[selectedSlot-1][getRndInteger(0, numTexts-1)]
+}
+
+function getRandomFailText() {
+    let numTexts = scoreTextsSetup.missTexts.labels.length;
+    return scoreTextsSetup.missTexts.labels[getRndInteger(0, numTexts-1)]
+}
 
 /// Main FSM States and code
 const GAMESTATES = Object.freeze({
@@ -439,6 +522,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         gameObjects.target = { type: GAMEOBJECTTYPE.GOT_TARGET, pos: { x: targetPosition.x, y: targetPosition.y }, color: commonColors.black, size: inGameSetup.targetSize };
         gameObjects.aimPoint = { type: GAMEOBJECTTYPE.GOT_AIMPOINT, pos: { x: targetPosition.x + 50, y: targetPosition.y + 50 }, color: commonColors.red, size: 10, angle: 0, amplitudPhase: 0 }
         gameObjects.score = 0;
+        gameObjects.hitsInARow = 0;
         gameObjects.record = localStorage.getItem('record') ? parseInt(localStorage.getItem('record')) : 0;
         gameObjects.lives = inGameSetup.lives;
         gameObjects.playerName = "";
@@ -486,6 +570,9 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     (dt) => {
         stepTarget(dt);
         stepHud(dt);
+        if(inputKeyPressed("Enter")) {
+            document.getElementById("nameButton").click();
+        }
         if (inputKeyPressed("Enter") && gameObjects.playerName != "") {   
             leaderboardTryAddEntry(gameObjects.playerName, gameObjects.score);         
             FSMTransitToState(GAMESTATES.GS_LEADERBOARD)
@@ -614,24 +701,19 @@ function stepAimPoint(dt) {
         __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.green, size: gameObjects.aimPoint.size })
         if (inputClickDetected()) {
             //console.log("Goal!!")
+            gameObjects.score++;
+            gameObjects.hitsInARow++;
             gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
             gameObjects.objects.push(
                 {
                     type: GAMEOBJECTTYPE.GOT_TEXT,
-                    label: "Great!!",
-                    pos: { x: 730, y: 360 },
-                    color: structuredClone(commonColors.green),
-                    size: 50,
-                    align: "left",
-                    rotation: 0,
-                    behaviorQueue: [
-                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
-                        { type: BEHAVIORTTYPES.BT_BLOCK },
-                        { type: BEHAVIORTTYPES.BT_MOVE_ACCEL, accel: { x: 0, y: -200 }, time: 1.0 },
-                        { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
-                        { type: BEHAVIORTTYPES.BT_BLOCK },
-                        { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
-                    ]
+                    label: getRandomSuccessText(gameObjects.hitsInARow),
+                    pos: structuredClone(scoreTextsSetup.hitTexts.pos),
+                    color: structuredClone(scoreTextsSetup.hitTexts.color),
+                    size: scoreTextsSetup.hitTexts.size,
+                    align: scoreTextsSetup.hitTexts.align,
+                    rotation: scoreTextsSetup.hitTexts.rotation,
+                    behaviorQueue: structuredClone(scoreTextsSetup.hitTexts.behaviorQueue)
                 }
             );
             gameObjects.objects.push(
@@ -651,35 +733,40 @@ function stepAimPoint(dt) {
                 }
             );
             resouceSoundPlay(sounds['hitSuccess']);
-            gameObjects.score++;
             if (gameObjects.score > gameObjects.record) {
                 gameObjects.record = gameObjects.score;
                 localStorage.setItem('record', String(gameObjects.record))
+                gameObjects.objects.push(
+                    {
+                        type: GAMEOBJECTTYPE.GOT_TEXT,
+                        label: scoreTextsSetup.newRecord.label,
+                        pos: structuredClone(scoreTextsSetup.newRecord.pos),
+                        color: structuredClone(scoreTextsSetup.newRecord.color),
+                        size: structuredClone(scoreTextsSetup.newRecord.size),
+                        align: scoreTextsSetup.newRecord.align,
+                        rotation: scoreTextsSetup.newRecord.rotation,
+                        behaviorQueue: structuredClone(scoreTextsSetup.newRecord.behaviorQueue)
+                    }
+                );
             }
         }
     }
     else {
         __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
         if (inputClickDetected()) {
+            gameObjects.hitsInARow = 0;
             gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
             //console.log("Fail " + Math.abs(currentAmplitude))
             gameObjects.objects.push(
                 {
                     type: GAMEOBJECTTYPE.GOT_TEXT,
-                    label: "Miss!",
-                    pos: { x: 730, y: 360 },
-                    color: structuredClone(commonColors.red),
-                    size: 50,
-                    align: "left",
-                    rotation: 0,
-                    behaviorQueue: [
-                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
-                        { type: BEHAVIORTTYPES.BT_BLOCK },
-                        { type: BEHAVIORTTYPES.BT_MOVE_ACCEL, accel: { x: 0, y: 150 }, time: 1.0 },
-                        { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 1.0 },
-                        { type: BEHAVIORTTYPES.BT_BLOCK },
-                        { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
-                    ]
+                    label: getRandomFailText(),
+                    pos: structuredClone(scoreTextsSetup.missTexts.pos),
+                    color: structuredClone(scoreTextsSetup.missTexts.color),
+                    size: scoreTextsSetup.missTexts.size,
+                    align: scoreTextsSetup.missTexts.align,
+                    rotation: scoreTextsSetup.missTexts.rotation,
+                    behaviorQueue: structuredClone(scoreTextsSetup.missTexts.behaviorQueue)
                 }
             );
             gameObjects.lives--;

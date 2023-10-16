@@ -34,8 +34,10 @@ function debugToolsStep(dt) {
     }
 
     if (__debugToolsState.resetLeaderboardsTime > 2 *__debugKeyThreashold) {
-        console.log("DEBUGTOOLS>> Reset Leaderboards")
+        console.log("DEBUGTOOLS>> Reset Leaderboards and Record")
         leaderboardReset();
+        gameObjects.record = gameObjects.score;
+        localStorage.setItem('record', String(gameObjects.record))
         __debugToolsState.resetLeaderboardsTime = 0;
     }
 
