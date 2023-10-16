@@ -564,11 +564,20 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         gameObjects.aimPoint = { type: GAMEOBJECTTYPE.GOT_AIMPOINT, pos: { x: targetPosition.x + 50, y: targetPosition.y + 50 }, color: commonColors.red, size: 10, angle: 0, amplitudPhase: 0 }
         gameObjects.score = 0;
         gameObjects.hitsInARow = 0;
-        gameObjects.record = localStorage.getItem('record') ? parseInt(localStorage.getItem('record')) : 0;
         gameObjects.lives = inGameSetup.lives;
         gameObjects.playerName = "";
         gameObjects.deadControlTime = 0;
         gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
+
+        // Make sure a fresh install have a record set of 5
+        if (localStorage.getItem('record')) {
+            gameObjects.record = parseInt(localStorage.getItem('record'))
+        }
+        else {
+            gameObjects.record = 5;
+            leaderboardTryAddEntry("FLC", 5);
+            localStorage.setItem('record', gameObjects.record);
+        }
 
         // Start Ingame Music
         resouceSoundPlay(sounds['inGameMusic']);
@@ -617,7 +626,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
         if(inputKeyPressed("Enter")) {
             document.getElementById("nameButton").click();
         }
-        if (inputKeyPressed("Enter") && gameObjects.playerName != "") {   
+        if (gameObjects.playerName != "") {   
             leaderboardTryAddEntry(gameObjects.playerName, gameObjects.score);         
             FSMTransitToState(GAMESTATES.GS_LEADERBOARD)
         }
