@@ -1,6 +1,7 @@
 
 
 var __clickDetected = false;
+var __clickWaitTime = 0;
 var __touchDetected = false;
 var __touchDetectedPos = {x: -1, y: -1}
 var __keysDetected = []; // This is used to control keys which are hold, keys enter with the keyDown event and leave with the keyUp
@@ -11,13 +12,23 @@ var __gamepadConnected = false;
 var __connectedGamepads = [];
 //var __counter = 0;
 
+const __clickWaitTimePeriod = 0.1;
+
 /// Even Handling
 function inputOnClick() {
-    __clickDetected = true;
+    if (__clickWaitTime < 0)
+    {
+        __clickDetected = true;
+        __clickWaitTime = __clickWaitTimePeriod;
+    } 
 }
 
 function inputOnTouchStart(event) {
-    __clickDetected         = true;
+    if (__clickWaitTime < 0)
+    {
+        __clickDetected = true;
+        __clickWaitTime = __clickWaitTimePeriod;
+    } 
     __touchDetectedPos.x    = event.touches[0].pageX;
     __touchDetectedPos.y    = event.touches[0].pageY;
 }
@@ -116,7 +127,9 @@ function inputInit() {
     );
 }
 
-function inputStep() {
+function inputStep(dt) {
+    __clickWaitTime -= dt;
+
     for (const gamepad of navigator.getGamepads()) {
         if (!gamepad) continue;
         for (const [index, button] of gamepad.buttons.entries()) {

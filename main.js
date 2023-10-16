@@ -562,7 +562,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         gameObjects.hitsInARow = 0;
         gameObjects.lives = inGameSetup.lives;
         gameObjects.playerName = "";
-        gameObjects.deadControlTime = 0;
+        gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;;
         gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
 
         // Make sure a fresh install have a record set of 5
@@ -1020,7 +1020,7 @@ function step(curentTime) {
     lastFrameTime = curentTime;
 
     // Capture Input
-    inputStep();
+    inputStep(dt);
 
     FSMStep(dt); // Step the game logic
     stepObjects(dt);
