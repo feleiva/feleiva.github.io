@@ -6,6 +6,40 @@ function particlesRandomFromRange(range) { // range is [min, max]
     return (Math.random() * (range[1] - range[0])) + range[0];
 }
 
+function particlesNormalRandomFromRange(range) { // range is [min, max]
+    let probAcum = 0
+    for (let i=0; i< 12; i++)
+        probAcum += Math.random()
+    probAcum -= 6;
+
+    // If we trust the internet, probAcum is now a random number on the standard normal distribution (means average is 0 and std is 1)
+    let expectedMean    = (range[0] + range[1])/2; // center of the range
+    let expectedStd     = ((range[1] - range[0])/(2*3)); // Half of the range. the x3 is my attempt to keep most of the values within the range. 
+
+    let output = (probAcum * expectedStd) + expectedMean; // Correct the value to the right std and mean
+
+    // This is only made to avoid issues, with things like the radius. It's normal that a few values land outside of the range
+    if (output < range[0])
+        output = range[0];
+    else if (output > range[1])
+        output = range[1]
+
+    return output;
+}
+
+function fixRange(range) {
+    if (range[1] == range[0]) {
+        alert("Error on Range definition, values must be different")
+        return;
+    }
+
+    if (range[1] < range[0]) {
+        let tmp = range[0];
+        range[0] = range[1];
+        range[1] = tmp;
+    }
+}
+
 function EmitterTemplate(posXRange, posYRange, velXRange, velYRange, radiusRange, emitTime, rate, lifeRange, colorFrom, colorTo) {
     this.posXRange      = posXRange;
     this.posYRange      = posYRange;
@@ -18,14 +52,21 @@ function EmitterTemplate(posXRange, posYRange, velXRange, velYRange, radiusRange
     this.lifeRange      = lifeRange;
     this.colorFrom      = colorFrom;
     this.colorTo        = colorTo;
+
+    fixRange(this.posXRange);
+    fixRange(this.posYRange);
+    fixRange(this.velXRange);
+    fixRange(this.velYRange);
+    fixRange(this.radiusRange);
+    fixRange(this.lifeRange);
 }
 
 function Particle(template) {
     this.template       = template
-    this.pos            = {x: particlesRandomFromRange(template.posXRange), y: particlesRandomFromRange(template.posYRange)},
-    this.vel            = {x: particlesRandomFromRange(template.velXRange), y: particlesRandomFromRange(template.velYRange)},
-    this.radius         = particlesRandomFromRange(template.radiusRange)
-    this.lifeRemaining  = particlesRandomFromRange(template.lifeRange)
+    this.pos            = {x: particlesNormalRandomFromRange(template.posXRange), y: particlesNormalRandomFromRange(template.posYRange)},
+    this.vel            = {x: particlesNormalRandomFromRange(template.velXRange), y: particlesNormalRandomFromRange(template.velYRange)},
+    this.radius         = particlesNormalRandomFromRange(template.radiusRange)
+    this.lifeRemaining  = particlesNormalRandomFromRange(template.lifeRange)
     this.lifeTotal      = this.lifeRemaining
     this.color          = template.colorFrom
 }

@@ -15,16 +15,18 @@ var aimPointSettup = {
 
 var emittersTemplates = {
     fire: new EmitterTemplate(
-        [-5, 5],    // birthX range from game object origin 
-        [-2, 2],     // birthy range from game object origin 
-        [-15, 15],  // velX range at birth  
-        [-350, -400],  // velY range at birth 
-        [2, 3],     // radious Range
-        0.3,         // Emit Time
-        800,         // emit Rate
-        [3, 4],   // Particle life Range
-        {r: 255, g: 95, b: 31, a: 255}, // Birth Color
-        {r: 255, g: 241, b: 18, a: 128} // Death Color
+        [-1, 1],    // birthX range from game object origin 
+        [-1, 1],     // birthy range from game object origin 
+        [-35, 35],  // velX range at birth  
+        [-400, -500],  // velY range at birth 
+        [1, 2],     // radious Range
+        1.5,         // Emit Time
+        1000,         // emit Rate
+        [1, 1.2],   // Particle life Range
+        //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
+        //{r: 0, g: 0, b: 0, a: 200} // Death Color
+        {r: 250, g: 247, b: 247, a: 255}, // Birth Color
+        {r: 245, g: 205, b: 179, a: 200} // Death Color
     ), 
 }
 
@@ -536,6 +538,14 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
                     { type: BEHAVIORTTYPES.BT_BLOCK },
                     { type: BEHAVIORTTYPES.BT_WAIT, time: 0.1 },
                     { type: BEHAVIORTTYPES.BT_LOOP },
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_PARTICLE_EMITTER,
+                pos: {x: 300, y: 720},
+                emitterTemplate: emittersTemplates.fire,
+                behaviorQueue: [
+                    { type: BEHAVIORTTYPES.BT_KILL, time: 4.5 }
                 ]
             }
         );
