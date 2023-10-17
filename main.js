@@ -20,8 +20,8 @@ var emittersTemplates = {
         [-35, 35],  // velX range at birth  
         [-400, -500],  // velY range at birth 
         [1, 3],     // radious Range
-        1.5,         // Emit Time
-        1000,         // emit Rate
+        0.5,         // Emit Time
+        700,         // emit Rate
         [1, 1.2],   // Particle life Range
         //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
         //{r: 0, g: 0, b: 0, a: 200} // Death Color
