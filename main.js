@@ -25,9 +25,9 @@ var emittersTemplates = {
         [1, 1.2],   // Particle life Range
         //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
         //{r: 0, g: 0, b: 0, a: 200} // Death Color
-        {r: 250, g: 247, b: 247, a: 255}, // Birth Color
-        {r: 245, g: 205, b: 179, a: 200} // Death Color
-    ), 
+        { r: 250, g: 247, b: 247, a: 255 }, // Birth Color
+        { r: 245, g: 205, b: 179, a: 200 } // Death Color
+    ),
 }
 
 
@@ -40,7 +40,7 @@ var scoreTextsSetup = {
         rotation: 0,
         labels: [
             ["Good!", "Score!", "Bravo!", "Well Done!"], // First hit
-            ["Great!" ,"Nice Job!", "Double Hit!", "You got this"], // 2 hits in a row
+            ["Great!", "Nice Job!", "Double Hit!", "You got this"], // 2 hits in a row
             ["Impresive!", "Triple Combo", "Keep the flow!"], // 3 hits in a row
             ["Outstanding!", "That shoudl hurt!", "Wow 4 in a row"], // 4 hits in a row 
             ["Aboslutelly Awesome!", "Unstoppable!", "You are rocking!", "Keep on keeping on!", "Hats off to you!", "This is your day!  "] // 5 hits in a row or more
@@ -111,7 +111,7 @@ var scoreTextsSetup = {
 var inGameSetup = {
     targetSize: 30,
     lives: 10,
-    controlIgnoreTime:.3,           // How much we wait before allowing another input
+    controlIgnoreTime: .3,           // How much we wait before allowing another input
     controlEventTimeout: 15,        // How long we wait for input before Game Over
     controlEventLabelStartAt: 5,    // How much time remaining before showing the timer on screen
 };
@@ -192,11 +192,16 @@ var hudSetup = {
         label: "Lives: ",
         digits: "2",
         rotation: 0
+    },
+    tutorialButton: {
+        pos: { x: 700, y: 300 },
+        image: "redButton",
+        life: 0.45
     }
 }
 
-var darkVeilSetup= {
-    color:  { r: 128, g: 128, b: 128, a: 128},
+var darkVeilSetup = {
+    color: { r: 128, g: 128, b: 128, a: 128 },
     fadeTime: 0.3,
 }
 
@@ -211,22 +216,22 @@ var leaderboardSetup = {
     },
     rows: {
         startAt: { x: 50, y: 100 },
-        separation: { x: 0, y: 50},
+        separation: { x: 0, y: 50 },
         size: 30,
         color: commonColors.black,
         rotation: 0
     },
     position: {
         align: "right",
-        relativePos: { x: 0, y: 0},
+        relativePos: { x: 0, y: 0 },
     },
     names: {
         align: "left",
-        relativePos: { x: 80, y: 0},
+        relativePos: { x: 80, y: 0 },
     },
     scores: {
         align: "right",
-        relativePos: { x: 1180, y: 0},
+        relativePos: { x: 1180, y: 0 },
     },
 }
 
@@ -251,6 +256,7 @@ var gameObjects = {
     record: 0,
     deadControlTime: 0,
     controlTimmeout: 0,
+    tutorialTimer: 0,
     playerName: "",
     // Add other generic items here
     objects: []
@@ -260,33 +266,38 @@ var images = {
     "outgame-background-720": {
         image: null,
         path: "img/outgame-background.png",
-        size: {x: 1280, y: 720},
+        size: { x: 1280, y: 720 },
         //loaded: false
     },
     "ingame-background-720": {
         image: null,
         path: "img/ingame-background.png",
-        size: {x: 1280, y: 720},
+        size: { x: 1280, y: 720 },
         //loaded: false
     },
     "logo": {
         image: null,
         path: "img/logo3.png",
-        size: {x: 1000, y: 300},
+        size: { x: 1000, y: 300 },
         //loaded: false
     },
     "tail": {
         image: null,
         path: "img/tail.png",
-        size: {x: 146, y: 159},
+        size: { x: 146, y: 159 },
         //loaded: false
     },
     "hitReaction": {
         image: null,
         path: "img/hitReaction.gif",
-        size: {x: 200, y: 200},
+        size: { x: 200, y: 200 },
         //loaded: false
     },
+    "redButton": {
+        image: null,
+        path: "img/RedButtonPush_0.45.gif",
+        size: { x: 200, y: 200 }
+    }
 }
 
 var sounds = {
@@ -329,23 +340,22 @@ function setDarkVeil(fade) {
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_RECTANGLE,
-                pos: {x: 0, y: 0},
-                color: {r: darkVeilSetup.color.r, g: darkVeilSetup.color.g, b: darkVeilSetup.color.b, a: 0},
-                scale: {x: main2dContext.width, y: main2dContext.height},
+                pos: { x: 0, y: 0 },
+                color: { r: darkVeilSetup.color.r, g: darkVeilSetup.color.g, b: darkVeilSetup.color.b, a: 0 },
+                scale: { x: main2dContext.width, y: main2dContext.height },
                 behaviorQueue: [
                     { type: BEHAVIORTTYPES.BT_FADE, to: darkVeilSetup.color.a, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: darkVeilSetup.fadeTime },
                 ]
             }
         );
     }
-    else
-    {
+    else {
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_RECTANGLE,
-                pos: {x: 0, y: 0},
+                pos: { x: 0, y: 0 },
                 color: darkVeilSetup.color,
-                scale: {x: main2dContext.width, y: main2dContext.height},
+                scale: { x: main2dContext.width, y: main2dContext.height },
                 behaviorQueue: [
                 ]
             }
@@ -358,7 +368,7 @@ function askPlayerName() {
     if (inputText) {
         document.getElementById("playerName").style.display = 'block';
         inputText.value = "";
-        inputText.focus();    
+        inputText.focus();
     }
 }
 
@@ -367,11 +377,11 @@ function setPlayerName(playerName) {
         gameObjects.playerName = playerName;
         document.getElementById("playerName").style.display = 'none';
     }
-}  
+}
 
 function getRndInteger(min, max) { // Max is included
     max = max + 1;
-    return Math.floor(Math.random() * (max - min) ) + min;
+    return Math.floor(Math.random() * (max - min)) + min;
 }
 
 function getRandomSuccessText(hitsInARow) {
@@ -380,13 +390,13 @@ function getRandomSuccessText(hitsInARow) {
     if (selectedSlot > numSlots)
         selectedSlot = numSlots;
 
-    let numTexts = scoreTextsSetup.hitTexts.labels[selectedSlot-1].length;
-    return scoreTextsSetup.hitTexts.labels[selectedSlot-1][getRndInteger(0, numTexts-1)]
+    let numTexts = scoreTextsSetup.hitTexts.labels[selectedSlot - 1].length;
+    return scoreTextsSetup.hitTexts.labels[selectedSlot - 1][getRndInteger(0, numTexts - 1)]
 }
 
 function getRandomFailText() {
     let numTexts = scoreTextsSetup.missTexts.labels.length;
-    return scoreTextsSetup.missTexts.labels[getRndInteger(0, numTexts-1)]
+    return scoreTextsSetup.missTexts.labels[getRndInteger(0, numTexts - 1)]
 }
 
 /// Main FSM States and code
@@ -399,9 +409,9 @@ const GAMESTATES = Object.freeze({
     GS_LEADERBOARD: 5       // Show the Leaderboard
 });
 
-FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT, 
+FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT,
     null, // OnEnter
-    (dt) => { 
+    (dt) => {
         if (inputTapDetected()) {
             __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
             FSMTransitToState(GAMESTATES.GS_LOADING)
@@ -423,23 +433,23 @@ FSMRegisterState(GAMESTATES.GS_WAIT_FOR_INPUT,
     null, //OnExit
 )
 
-FSMRegisterState(GAMESTATES.GS_LOADING, 
-    () => { 
-         // Init Audio system, can only do this once the user has interacted
-         resourceSoundInit();
-         __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
+FSMRegisterState(GAMESTATES.GS_LOADING,
+    () => {
+        // Init Audio system, can only do this once the user has interacted
+        resourceSoundInit();
+        __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
 
-         for (const imageId in images) {
-             images[imageId].image = new Image();
-             images[imageId].image.src = images[imageId].path;
-         }
-         if (resourceSoundIsAvailable()) {
+        for (const imageId in images) {
+            images[imageId].image = new Image();
+            images[imageId].image.src = images[imageId].path;
+        }
+        if (resourceSoundIsAvailable()) {
             for (const soundId in sounds) {
                 resouceSoundLoad(sounds[soundId]);
             }
-         }
+        }
     }, //OnEnter
-    (dt) => { 
+    (dt) => {
         countTotal = 0;
         countReady = 0;
 
@@ -482,7 +492,7 @@ FSMRegisterState(GAMESTATES.GS_LOADING,
 )
 
 
-FSMRegisterState(GAMESTATES.GS_HOME_SCREEN, 
+FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
     () => {
         // Start outGame Music
         resouceSoundPlay(sounds['outGameMusic']);
@@ -554,7 +564,7 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
     } //OnExit
 )
 
-FSMRegisterState(GAMESTATES.GS_IN_GAME, 
+FSMRegisterState(GAMESTATES.GS_IN_GAME,
     () => {
         gameObjects.target = { type: GAMEOBJECTTYPE.GOT_TARGET, pos: { x: targetPosition.x, y: targetPosition.y }, color: commonColors.black, size: inGameSetup.targetSize };
         gameObjects.aimPoint = { type: GAMEOBJECTTYPE.GOT_AIMPOINT, pos: { x: targetPosition.x + 50, y: targetPosition.y + 50 }, color: commonColors.red, size: 10, angle: 0, amplitudPhase: 0 }
@@ -564,6 +574,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         gameObjects.playerName = "";
         gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;;
         gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
+        gameObjects.tutorialTimer = 0;
 
         // Make sure a fresh install have a record set of 5
         if (localStorage.getItem('record')) {
@@ -578,7 +589,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         // Start Ingame Music
         resouceSoundPlay(sounds['inGameMusic']);
     }, // OnEnter
-    (dt) => { 
+    (dt) => {
         stepTarget(dt);
         stepAimPoint(dt);
         stepHud(dt);
@@ -586,7 +597,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
     () => { }, //OnExit
 )
 
-FSMRegisterState(GAMESTATES.GS_FINISHED, 
+FSMRegisterState(GAMESTATES.GS_FINISHED,
     () => {
         setDarkVeil(true);
         askPlayerName();
@@ -619,11 +630,11 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     (dt) => {
         stepTarget(dt);
         stepHud(dt);
-        if(inputKeyPressed("Enter")) {
+        if (inputKeyPressed("Enter")) {
             document.getElementById("nameButton").click();
         }
-        if (gameObjects.playerName != "") {   
-            leaderboardTryAddEntry(gameObjects.playerName, gameObjects.score);         
+        if (gameObjects.playerName != "") {
+            leaderboardTryAddEntry(gameObjects.playerName, gameObjects.score);
             FSMTransitToState(GAMESTATES.GS_LEADERBOARD)
         }
     }, // OnStep
@@ -633,7 +644,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     }, //OnExit
 )
 
-FSMRegisterState(GAMESTATES.GS_LEADERBOARD, 
+FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
     () => {
         setDarkVeil(false);
         gameObjects.objects.push(
@@ -662,13 +673,12 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
         );
 
         let rowPosition = leaderboardSetup.rows.startAt;
-        for (let i = 0; i < __leaderBoardData.entries.length; i++)
-        {
+        for (let i = 0; i < __leaderBoardData.entries.length; i++) {
             let entry = __leaderBoardData.entries[i];
             gameObjects.objects.push(
                 {
                     type: GAMEOBJECTTYPE.GOT_TEXT,
-                    label: "" + (i+1),
+                    label: "" + (i + 1),
                     pos: v2Add(rowPosition, leaderboardSetup.position.relativePos),
                     color: structuredClone(leaderboardSetup.rows.color),
                     size: leaderboardSetup.rows.size,
@@ -705,8 +715,8 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
     }, // OnEnter
     (dt) => {
         stepTarget(dt);
-        if (inputKeyPressed("Enter") 
-            || inputTouchDetected() ) {            
+        if (inputKeyPressed("Enter")
+            || inputTouchDetected()) {
             FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
         }
     }, // OnStep
@@ -736,7 +746,7 @@ function stepTarget(dt) {
     __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_NONE } // We use a full screen image. No need to clear
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, rotation: 0, id: "ingame-background-720" })
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size * 3 })
-    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: commonColors.white, size: gameObjects.target.size* 2 })
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: commonColors.white, size: gameObjects.target.size * 2 })
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size })
 }
 
@@ -752,28 +762,27 @@ function stepAimPoint(dt) {
     gameObjects.aimPoint.pos.x = gameObjects.target.pos.x - currentAmplitude * Math.sin(gameObjects.aimPoint.angle);
     gameObjects.aimPoint.pos.y = gameObjects.target.pos.y + currentAmplitude * Math.cos(gameObjects.aimPoint.angle);
 
-    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: {x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15}, rotation: 0, id: "tail" })
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15 }, rotation: 0, id: "tail" })
 
     let prevControlTimeout = gameObjects.controlTimmeout;
     gameObjects.controlTimmeout -= dt;
     if (gameObjects.controlTimmeout < inGameSetup.controlEventLabelStartAt
         && gameObjects.controlTimmeout >= 0
-        && Math.floor(gameObjects.controlTimmeout) != Math.floor(prevControlTimeout))
-        {
-            console.log("Timeout: " + Math.floor(prevControlTimeout));
-            gameObjects.objects.push(
-                {
-                    type: GAMEOBJECTTYPE.GOT_TEXT,
-                    label: "" + Math.floor(prevControlTimeout),
-                    pos: structuredClone(scoreTextsSetup.timeLimit.pos),
-                    color: structuredClone(scoreTextsSetup.timeLimit.color),
-                    size: scoreTextsSetup.timeLimit.size,
-                    align: scoreTextsSetup.timeLimit.align,
-                    rotation: scoreTextsSetup.timeLimit.rotation,
-                    behaviorQueue: structuredClone(scoreTextsSetup.timeLimit.behaviorQueue)
-                }
-            );
-        }
+        && Math.floor(gameObjects.controlTimmeout) != Math.floor(prevControlTimeout)) {
+        console.log("Timeout: " + Math.floor(prevControlTimeout));
+        gameObjects.objects.push(
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: "" + Math.floor(prevControlTimeout),
+                pos: structuredClone(scoreTextsSetup.timeLimit.pos),
+                color: structuredClone(scoreTextsSetup.timeLimit.color),
+                size: scoreTextsSetup.timeLimit.size,
+                align: scoreTextsSetup.timeLimit.align,
+                rotation: scoreTextsSetup.timeLimit.rotation,
+                behaviorQueue: structuredClone(scoreTextsSetup.timeLimit.behaviorQueue)
+            }
+        );
+    }
     if (gameObjects.controlTimmeout <= 0) {
         FSMTransitToState(gameState = GAMESTATES.GS_FINISHED);
         return;
@@ -783,7 +792,29 @@ function stepAimPoint(dt) {
     if (gameObjects.deadControlTime > 0)
         return;
 
-    if (Math.abs(currentAmplitude) <= gameObjects.target.size / 2) {
+    let targetRadious = gameObjects.target.size / 2;
+    let amplitude = Math.abs(currentAmplitude);
+
+    gameObjects.tutorialTimer -= dt;
+    if ((gameObjects.score == 0 || gameObjects.controlTimmeout < inGameSetup.controlEventLabelStartAt)
+        && gameObjects.tutorialTimer < 0
+        && (amplitude <= targetRadious * 1.3)) {
+        gameObjects.tutorialTimer = hudSetup.tutorialButton.life;
+        gameObjects.objects.push(
+            {
+                type: GAMEOBJECTTYPE.GOT_GIF,
+                pos: hudSetup.tutorialButton.pos,
+                color: commonColors.white,
+                id: hudSetup.tutorialButton.image,
+                rotation: 0,
+                behaviorQueue: [
+                    { type: BEHAVIORTTYPES.BT_KILL, time: hudSetup.tutorialButton.life }
+                ]
+            },
+        )
+    }
+
+    if (amplitude <= targetRadious) {
         __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.green, size: gameObjects.aimPoint.size })
         if (inputTapDetected()) {
             //console.log("Goal!!")
@@ -836,7 +867,7 @@ function stepAimPoint(dt) {
                     },
                     {
                         type: GAMEOBJECTTYPE.GOT_PARTICLE_EMITTER,
-                        pos: {x: 300, y: 720},
+                        pos: { x: 300, y: 720 },
                         emitterTemplate: emittersTemplates.fire,
                         behaviorQueue: [
                             { type: BEHAVIORTTYPES.BT_KILL, time: 4.5 }
@@ -844,7 +875,7 @@ function stepAimPoint(dt) {
                     },
                     {
                         type: GAMEOBJECTTYPE.GOT_PARTICLE_EMITTER,
-                        pos: {x: 980, y: 720},
+                        pos: { x: 980, y: 720 },
                         emitterTemplate: emittersTemplates.fire,
                         behaviorQueue: [
                             { type: BEHAVIORTTYPES.BT_KILL, time: 4.5 }
@@ -887,7 +918,7 @@ function stepHud(dt) {
     __renderActions.actions.push(
         {
             type: RENDERACTIONTYPE.RAT_TEXT_AT,
-            text: hudSetup.score.label +  ("0000000000000" + String(gameObjects.score)).slice(-hudSetup.score.digits),
+            text: hudSetup.score.label + ("0000000000000" + String(gameObjects.score)).slice(-hudSetup.score.digits),
             pos: hudSetup.score.pos,
             color: hudSetup.score.color,
             size: hudSetup.score.size,
@@ -916,11 +947,9 @@ function stepHud(dt) {
         });
 }
 
-function clearGameObjects()
-{
+function clearGameObjects() {
     // Make sure all game objects are erased on the next step
-    for (gameObject of gameObjects.objects)
-    {
+    for (gameObject of gameObjects.objects) {
         gameObject.behaviorQueue = [
             { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
         ];
@@ -968,23 +997,21 @@ function stepObjects(dt) {
                     });
                 break;
             case GAMEOBJECTTYPE.GOT_GIF:
-                if (!("imgDiv" in theObject))
-                {
+                if (!("imgDiv" in theObject)) {
                     theObject.imgDiv = document.createElement('div');
-                    theObject.imgDiv.style.cssText = "position:absolute;top:" + theObject.pos.y + "px;left:" + theObject.pos.x + "px;width:" + images[theObject.id].size.x + "px;height:" + images[theObject.id].size.y + "px;opacity:" + colorToAlpha01(theObject.color) + ";z-index:100;background:#000";
+                    theObject.imgDiv.style.cssText = "position:absolute;top:" + theObject.pos.y + "px;left:" + theObject.pos.x + "px;width:" + images[theObject.id].size.x + "px;height:" + images[theObject.id].size.y + "px;opacity:" + colorToAlpha01(theObject.color) + ";z-index:100;background-color: transparent";
                     document.body.appendChild(theObject.imgDiv);
                     theObject.imgDiv.appendChild(images[theObject.id].image)
                 }
-                else
-                {
-                    theObject.imgDiv.style.cssText = "position:absolute;top:" + theObject.pos.y + "px;left:"  + theObject.pos.x + "px;width:" + images[theObject.id].size.x + "px;height:" + images[theObject.id].size.y + "px;opacity:" + colorToAlpha01(theObject.color) + ";z-index:100;background:#000";
+                else {
+                    theObject.imgDiv.style.cssText = "position:absolute;top:" + theObject.pos.y + "px;left:" + theObject.pos.x + "px;width:" + images[theObject.id].size.x + "px;height:" + images[theObject.id].size.y + "px;opacity:" + colorToAlpha01(theObject.color) + ";z-index:100;background-color: transparent";
                 }
                 break;
             case GAMEOBJECTTYPE.GOT_RECTANGLE:
                 __renderActions.actions.push(
                     {
                         type: RENDERACTIONTYPE.RAT_RECTANGLE_AT,
-                        color: theObject.color, 
+                        color: theObject.color,
                         pos: theObject.pos,
                         scale: theObject.scale
                     });
@@ -997,7 +1024,7 @@ function stepObjects(dt) {
                         nextEmissionTimer: 0
                     }
                 }
-                
+
                 particlesStep(dt, theObject.emitterTemplate, theObject.emiterData);
                 __renderActions.actions.push(
                     {
@@ -1032,7 +1059,7 @@ function step(curentTime) {
     //// Render
     render();
     renderFlush();
-    
+
     // Schedule running this function again
     window.requestAnimationFrame(step);
 }
@@ -1063,7 +1090,7 @@ function main() {
 
     // Eveything is ok, prepare to run the game then register the input detection and trigger the game loop
     FSMTransitToState(GAMESTATES.GS_WAIT_FOR_INPUT);
-    
+
     window.requestAnimationFrame(step);
 }
 
