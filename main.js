@@ -6,14 +6,14 @@ var targetPosition = {
 };
 var lastFrameTime;
 var main2dContext;
-var aimPointSettup = {
+const aimPointSettup = {
     rotationAngularSpeed: 0.5,      // 1 rotation every 2*PI seconds, the bigger the harder
     maxAmplitude: 50,               // Max distance to target
     amplitudePhase: 3.0,            // 1 full cycle every 2*PI seconds
     dificultiFactor: 0.03,          // How much harder it becomes with every new point
 };
 
-var emittersTemplates = {
+const emittersTemplates = {
     fire: new EmitterTemplate(
         [-1, 1],    // birthX range from game object origin 
         [-1, 1],     // birthy range from game object origin 
@@ -31,7 +31,7 @@ var emittersTemplates = {
 }
 
 
-var scoreTextsSetup = {
+const scoreTextsSetup = {
     hitTexts: {
         pos: { x: 730, y: 360 },
         color: commonColors.green,
@@ -108,7 +108,7 @@ var scoreTextsSetup = {
     }
 }
 
-var inGameSetup = {
+const inGameSetup = {
     targetSize: 30,
     lives: 10,
     controlIgnoreTime: .3,           // How much we wait before allowing another input
@@ -116,7 +116,7 @@ var inGameSetup = {
     controlEventLabelStartAt: 5,    // How much time remaining before showing the timer on screen
 };
 
-var startupSetup = {
+const startupSetup = {
     preload: {
         label: "Tap To Start",
         pos: { x: 640, y: 360 },
@@ -136,7 +136,8 @@ var startupSetup = {
 }
 
 
-var homeScreenSetup = {
+const homeScreenSetup = {
+    onScreenMaxTime: 30,
     background: {
         image: "outgame-background-720"
     },
@@ -165,7 +166,7 @@ var homeScreenSetup = {
     }
 }
 
-var hudSetup = {
+const hudSetup = {
     score: {
         pos: { x: 1230, y: 50 },
         label: "Score: ",
@@ -205,7 +206,8 @@ var darkVeilSetup = {
     fadeTime: 0.3,
 }
 
-var leaderboardSetup = {
+const leaderboardSetup = {
+    onScreenMaxTime: 30,
     title: {
         pos: { x: 640, y: 50 },
         label: "Best Players!",
@@ -257,6 +259,7 @@ var gameObjects = {
     deadControlTime: 0,
     controlTimmeout: 0,
     tutorialTimer: 0,
+    onScreenTimmer: 0,
     playerName: "",
     // Add other generic items here
     objects: []
@@ -290,7 +293,7 @@ var images = {
     "hitReaction": {
         image: null,
         path: "img/hitReaction.gif",
-        size: { x: 200, y: 200 },
+        size: { x: 480, y: 480 },
         //loaded: false
     },
     "redButton": {
@@ -496,6 +499,7 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
     () => {
         // Start outGame Music
         resouceSoundPlay(sounds['outGameMusic']);
+        gameObjects.onScreenTimmer = 0;
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_IMAGE,
@@ -558,6 +562,13 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
             clearGameObjects();
             FSMTransitToState(GAMESTATES.GS_IN_GAME);
         }
+        else {
+            gameObjects.onScreenTimmer += dt;
+            if (gameObjects.onScreenTimmer > homeScreenSetup.onScreenMaxTime) {
+                clearGameObjects();
+                FSMTransitToState(GAMESTATES.GS_LEADERBOARD);
+            }
+        }
     }, // OnStep
     () => {
         resouceSoundStop(sounds['outGameMusic']);
@@ -590,6 +601,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         resouceSoundPlay(sounds['inGameMusic']);
     }, // OnEnter
     (dt) => {
+        stepInGameBackground(dt);
         stepTarget(dt);
         stepAimPoint(dt);
         stepHud(dt);
@@ -628,6 +640,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
         );
     }, // OnEnter
     (dt) => {
+        stepInGameBackground(dt);
         stepTarget(dt);
         stepHud(dt);
         if (inputKeyPressed("Enter")) {
@@ -647,6 +660,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
 FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
     () => {
         setDarkVeil(false);
+        gameObjects.onScreenTimmer = 0;
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
@@ -714,9 +728,11 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
         }
     }, // OnEnter
     (dt) => {
-        stepTarget(dt);
+        stepInGameBackground();
+        gameObjects.onScreenTimmer += dt;
         if (inputKeyPressed("Enter")
-            || inputTouchDetected()) {
+            || inputTouchDetected()
+            || gameObjects.onScreenTimmer > homeScreenSetup.onScreenMaxTime) {
             FSMTransitToState(GAMESTATES.GS_HOME_SCREEN)
         }
     }, // OnStep
@@ -741,10 +757,13 @@ FSMStep(0.15);
 */
 
 // Step for different object types
-function stepTarget(dt) {
-
+function stepInGameBackground(dt) {
     __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_NONE } // We use a full screen image. No need to clear
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, rotation: 0, id: "ingame-background-720" })
+}
+
+function stepTarget(dt) {
+
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size * 3 })
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: commonColors.white, size: gameObjects.target.size * 2 })
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.target.pos, color: gameObjects.target.color, size: gameObjects.target.size })
@@ -842,7 +861,7 @@ function stepAimPoint(dt) {
                     color: structuredClone(commonColors.black),
                     size: 1, // factor 1
                     behaviorQueue: [ // this gif last 2.5 seconds
-                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 110, y: 100 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
+                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 0, y: 100 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
                         { type: BEHAVIORTTYPES.BT_WAIT, time: 2.0 },
                         { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.5 },
                         { type: BEHAVIORTTYPES.BT_BLOCK },
