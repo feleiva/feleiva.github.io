@@ -65,7 +65,8 @@ const scoreTextsSetup = {
             "You can do it!",
             "Don't give up!",
             "Sooo close!!",
-            "Failure is success in progress."
+            "Come on! Come on!.",
+            "Almost made it!"
         ],
         behaviorQueue: [
             { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 550, y: 360 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
@@ -77,7 +78,7 @@ const scoreTextsSetup = {
         ]
     },
     newRecord: {
-        pos: { x: 640, y: 150 },
+        pos: { x: 640, y: 570 },
         color: commonColors.white,
         size: 80,
         align: "center",
@@ -196,7 +197,7 @@ const hudSetup = {
     },
     tutorialButton: {
         pos: { x: 700, y: 300 },
-        image: "redButton",
+        image: "redButtonAnim",
         life: 0.45
     }
 }
@@ -245,8 +246,9 @@ const GAMEOBJECTTYPE = Object.freeze({
     GOT_IMAGE: 3,
     GOT_TEXT: 4,
     GOT_GIF: 5,
-    GOT_RECTANGLE: 6,
-    GOT_PARTICLE_EMITTER: 7,
+    GOT_SPRITE: 6,
+    GOT_RECTANGLE: 7,
+    GOT_PARTICLE_EMITTER: 8,
 });
 
 var gameObjects = {
@@ -290,16 +292,39 @@ var images = {
         size: { x: 146, y: 159 },
         //loaded: false
     },
+    /*
     "hitReaction": {
         image: null,
         path: "img/hitReaction.gif",
-        size: { x: 480, y: 480 },
+        size: { x: 320, y: 300 },
         //loaded: false
     },
     "redButton": {
         image: null,
         path: "img/RedButtonPush_0.45.gif",
         size: { x: 200, y: 200 }
+    },*/
+    "hitReactionAnim": {
+        image: null,
+        path: "img/hitReactionAnim.png",
+        size: { x: 13120, y: 300 },
+        animation: {
+            rows: 1,
+            cols: 41,
+            frames: 41,
+            frameTime: 0.07
+        }
+    },
+    "redButtonAnim": {
+        image: null,
+        path: "img/RedButtonAnim.png",
+        size: { x: 600, y: 200 },
+        animation: {
+            rows: 1,
+            cols: 3,
+            frames: 3,
+            frameTime: 0.15
+        }
     }
 }
 
@@ -503,8 +528,10 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_IMAGE,
+                size: 1,
                 pos: { x: 0, y: 0 },
                 id: homeScreenSetup.background.image,
+                color: commonColors.white,
                 rotation: 0,
                 behaviorQueue: [
                 ]
@@ -527,7 +554,9 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
             */
             {
                 type: GAMEOBJECTTYPE.GOT_IMAGE,
+                size: 1,
                 pos: homeScreenSetup.logo.pos,
+                color: commonColors.white,
                 id: homeScreenSetup.logo.id,
                 rotation: homeScreenSetup.logo.rotation,
                 behaviorQueue: [
@@ -759,7 +788,7 @@ FSMStep(0.15);
 // Step for different object types
 function stepInGameBackground(dt) {
     __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR_NONE } // We use a full screen image. No need to clear
-    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, rotation: 0, id: "ingame-background-720" })
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: 0, y: 0 }, color: commonColors.white, imageQuad: {x: 0, y: 0, w: images["ingame-background-720"].size.x, h: images["ingame-background-720"].size.y}, size: 1, rotation: 0, id: "ingame-background-720" })
 }
 
 function stepTarget(dt) {
@@ -781,7 +810,7 @@ function stepAimPoint(dt) {
     gameObjects.aimPoint.pos.x = gameObjects.target.pos.x - currentAmplitude * Math.sin(gameObjects.aimPoint.angle);
     gameObjects.aimPoint.pos.y = gameObjects.target.pos.y + currentAmplitude * Math.cos(gameObjects.aimPoint.angle);
 
-    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15 }, rotation: 0, id: "tail" })
+    __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15 }, color: commonColors.white, imageQuad: {x: 0, y: 0, w: images["tail"].size.x, h: images["tail"].size.y}, size: 1, rotation: 0, id: "tail" })
 
     let prevControlTimeout = gameObjects.controlTimmeout;
     gameObjects.controlTimmeout -= dt;
@@ -821,7 +850,8 @@ function stepAimPoint(dt) {
         gameObjects.tutorialTimer = hudSetup.tutorialButton.life;
         gameObjects.objects.push(
             {
-                type: GAMEOBJECTTYPE.GOT_GIF,
+                type: GAMEOBJECTTYPE.GOT_SPRITE,
+                size: 1,
                 pos: hudSetup.tutorialButton.pos,
                 color: commonColors.white,
                 id: hudSetup.tutorialButton.image,
@@ -843,6 +873,21 @@ function stepAimPoint(dt) {
             gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
             gameObjects.objects.push(
                 {
+                    type: GAMEOBJECTTYPE.GOT_SPRITE,
+                    id: "hitReactionAnim",
+                    size: 1,
+                    pos: { x: 480, y: -300 },
+                    color: structuredClone(commonColors.black),
+                    size: 1, // factor 1
+                    behaviorQueue: [ // this gif last 2.5 seconds
+                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 480, y: 0 }, interpolationType: INTERPOLATIONTYPE.IT_EASIOUT, time: 0.2 },
+                        { type: BEHAVIORTTYPES.BT_WAIT, time: 2.0 },
+                        { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.5 },
+                        { type: BEHAVIORTTYPES.BT_BLOCK },
+                        { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+                    ]
+                },
+                {
                     type: GAMEOBJECTTYPE.GOT_TEXT,
                     label: getRandomSuccessText(gameObjects.hitsInARow),
                     pos: structuredClone(scoreTextsSetup.hitTexts.pos),
@@ -851,22 +896,6 @@ function stepAimPoint(dt) {
                     align: scoreTextsSetup.hitTexts.align,
                     rotation: scoreTextsSetup.hitTexts.rotation,
                     behaviorQueue: structuredClone(scoreTextsSetup.hitTexts.behaviorQueue)
-                }
-            );
-            gameObjects.objects.push(
-                {
-                    type: GAMEOBJECTTYPE.GOT_GIF,
-                    id: "hitReaction",
-                    pos: { x: -200, y: 100 },
-                    color: structuredClone(commonColors.black),
-                    size: 1, // factor 1
-                    behaviorQueue: [ // this gif last 2.5 seconds
-                        { type: BEHAVIORTTYPES.BT_MOVETO, to: { x: 0, y: 100 }, interpolationType: INTERPOLATIONTYPE.IT_EASIIN, time: 0.2 },
-                        { type: BEHAVIORTTYPES.BT_WAIT, time: 2.0 },
-                        { type: BEHAVIORTTYPES.BT_FADE, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.5 },
-                        { type: BEHAVIORTTYPES.BT_BLOCK },
-                        { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
-                    ]
                 }
             );
             resouceSoundPlay(sounds['hitSuccess']);
@@ -1012,6 +1041,34 @@ function stepObjects(dt) {
                         type: RENDERACTIONTYPE.RAT_IMAGE_AT,
                         pos: theObject.pos,
                         id: theObject.id,
+                        size: theObject.size,
+                        color: theObject.color,
+                        imageQuad: {x: 0, y: 0, w: images[theObject.id].size.x, h: images[theObject.id].size.y},
+                        rotation: theObject.rotation,
+                    });
+                break;
+            case GAMEOBJECTTYPE.GOT_SPRITE:
+                if (!("_spriteTimmer" in theObject)) {
+                    theObject._spriteTimmer = 0;
+                    theObject._frame = {w: images[theObject.id].size.x/images[theObject.id].animation.cols, h: images[theObject.id].size.y/images[theObject.id].animation.rows};
+                }
+                else {
+                    theObject._spriteTimmer += dt;
+                }
+                let currentFrame = Math.floor(theObject._spriteTimmer/images[theObject.id].animation.frameTime)%images[theObject.id].animation.frames;
+                let currentRow = Math.floor(currentFrame/images[theObject.id].animation.cols);
+                let currentCol = Math.floor(currentFrame%images[theObject.id].animation.cols);
+                //console.log("Frame: " + currentFrame);
+                //console.log("Row: " + currentRow);
+                //console.log("Col: " + currentCol);
+                __renderActions.actions.push(
+                    {
+                        type: RENDERACTIONTYPE.RAT_IMAGE_AT,
+                        pos: theObject.pos,
+                        id: theObject.id,
+                        size: theObject.size,
+                        color: theObject.color,
+                        imageQuad: {x: currentCol * theObject._frame.w , y: currentRow * theObject._frame.h , w: theObject._frame.w, h: theObject._frame.h},
                         rotation: theObject.rotation,
                     });
                 break;

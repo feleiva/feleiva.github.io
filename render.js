@@ -65,18 +65,24 @@ function renderAction(renderAction) {
             main2dContext.context.restore();
             break;
         case RENDERACTIONTYPE.RAT_IMAGE_AT: // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+            finalSize = {x: renderAction.size * renderAction.imageQuad.w, y: renderAction.size * renderAction.imageQuad.h};
+            main2dContext.context.globalAlpha = colorToAlpha01(renderAction.color);
+            //console.log("RenderALpha: " + colorToAlpha01(renderAction.color));  
             if (renderAction.rotation != 0)
             {
+                halfFinalSize = {x: finalSize.x/2, y: finalSize.y/2};    
                 main2dContext.context.save();
-                main2dContext.context.translate(renderAction.pos.x + images[renderAction.id].size.x/2 , renderAction.pos.y + images[renderAction.id].size.y/2);
+                main2dContext.context.translate(renderAction.pos.x + halfFinalSize.x , renderAction.pos.y + halfFinalSize.y);
                 main2dContext.context.rotate(renderAction.rotation);
-                main2dContext.context.drawImage(images[renderAction.id].image, -images[renderAction.id].size.x/2, -images[renderAction.id].size.y/2);
+                main2dContext.context.drawImage(images[renderAction.id].image, renderAction.imageQuad.x, renderAction.imageQuad.y, renderAction.imageQuad.w, renderAction.imageQuad.h, -halfFinalSize.x, -halfFinalSize.y, finalSize.x, finalSize.y);
                 main2dContext.context.restore();
             }
             else
             {
-                main2dContext.context.drawImage(images[renderAction.id].image, renderAction.pos.x, renderAction.pos.y);
+                main2dContext.context.drawImage(images[renderAction.id].image, renderAction.imageQuad.x, renderAction.imageQuad.y, renderAction.imageQuad.w, renderAction.imageQuad.h, renderAction.pos.x, renderAction.pos.y, finalSize.x, finalSize.y);
+                
             }
+            main2dContext.context.globalAlpha = 1;
             break;
         case RENDERACTIONTYPE.RAT_RECTANGLE_AT:
             main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
