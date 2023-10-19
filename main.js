@@ -768,6 +768,18 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
         gameObjects.lives = 0;
         gameObjects.objects.push(
             {
+                type: GAMEOBJECTTYPE.GOT_SPRITE,
+                id: "painAnim",
+                size: 1,
+                pos: { x: 450, y: 0 },
+                color: structuredClone(commonColors.black),
+                size: 1, 
+                rotation: 0.1,
+                behaviorQueue: [
+                    { type: BEHAVIORTTYPES.BT_FADE, from: 0, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.4 }
+                ]
+            },
+            {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
                 label: "GAME OVER",
                 pos: { x: 640, y: 360 },
@@ -787,18 +799,6 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
                 align: "center",
                 rotation: 0,
                 behaviorQueue: [
-                ]
-            },
-            {
-                type: GAMEOBJECTTYPE.GOT_SPRITE,
-                id: "painAnim",
-                size: 1,
-                pos: { x: 450, y: 0 },
-                color: structuredClone(commonColors.black),
-                size: 1, 
-                rotation: 0.1,
-                behaviorQueue: [
-                    { type: BEHAVIORTTYPES.BT_FADE, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.4 }
                 ]
             }
         );
