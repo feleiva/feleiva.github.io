@@ -447,6 +447,14 @@ var sounds = {
         buffer: null,
         soundNode: null
     },
+    "needAHug": {
+        filePath: "sound/NeedAHug.mp3",
+        loop: false,
+        singleInstance: false,
+        volume: 1.0,
+        buffer: null,
+        soundNode: null
+    },
     "outGameMusic": {
         filePath: "sound/IAmOnMyWay.mp3",
         loop: true,
@@ -765,6 +773,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     () => {
         setDarkVeil(true);
         askPlayerName();
+        resouceSoundPlay(sounds['needAHug']);
         gameObjects.lives = 0;
         gameObjects.objects.push(
             {
