@@ -375,7 +375,7 @@ var images = {
     },*/
     "hitReactionAnim": {
         image: null,
-        path: "img/hitReactionAnim.png",
+        path: "img/HitReactionAnim.png",
         size: { x: 13120, y: 300 },
         animation: {
             rows: 1,
