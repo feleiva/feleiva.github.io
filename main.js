@@ -159,7 +159,7 @@ const scoreTextsSetup = {
 const inGameSetup = {
     targetSize: 30,
     lives: 10,
-    controlIgnoreTime: .2,          // How much we wait before allowing another input
+    controlIgnoreTime: .3,          // How much we wait before allowing another input
     controlEventTimeout: 15,        // How long we wait for input before Game Over
     controlEventLabelStartAt: 5,    // How much time remaining before showing the timer on screen
 };
@@ -169,7 +169,7 @@ const startupSetup = {
         label: "Tap To Start",
         pos: { x: 640, y: 360 },
         size: 60,
-        color: { r: 0, g: 255, b: 0, a: 255 },
+        color: commonColors.black,
         align: "center",
         rotation: 0
     },
@@ -177,7 +177,7 @@ const startupSetup = {
         label: "Loading",
         pos: { x: 640, y: 360 },
         size: 60,
-        color: { r: 0, g: 255, b: 0, a: 255 },
+        color: commonColors.black,
         align: "center",
         rotation: 0
     },
@@ -272,7 +272,7 @@ const hudSetup = {
 }
 
 var darkVeilSetup = {
-    color: { r: 128, g: 128, b: 128, a: 128 },
+    color: { r: 128, g: 128, b: 128, a: 164 },
     fadeTime: 0.3,
 }
 
@@ -791,7 +791,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
                 label: "GAME OVER",
-                pos: { x: 640, y: 360 },
+                pos: { x: 640, y: 330 },
                 color: structuredClone(commonColors.red),
                 size: 100,
                 align: "center",
@@ -801,9 +801,20 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
             },
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: ("Your Score: " + gameObjects.score) + ((gameObjects.score == gameObjects.record)? ". This is a NEW RECORD!" : (". The record is " + gameObjects.record)),
+                pos: { x: 640, y: 390 },
+                color: structuredClone(commonColors.black),
+                size: 50,
+                align: "center",
+                rotation: 0,
+                behaviorQueue: [
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
                 label: "Write your name and press Enter to Continue",
-                pos: { x: 640, y: 420 },
-                color: structuredClone(commonColors.red),
+                pos: { x: 640, y: 440 },
+                color: structuredClone(commonColors.black),
                 size: 30,
                 align: "center",
                 rotation: 0,
@@ -874,7 +885,7 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
         );
 
         let rowPosition = leaderboardSetup.rows.startAt;
-        for (let i = 0; i < __leaderBoardData.entries.length; i++) {
+        for (let i = 0; i < __leaderBoardData.entries.length && i < 12; i++) {
             let entry = __leaderBoardData.entries[i];
             gameObjects.objects.push(
                 {

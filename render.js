@@ -58,7 +58,7 @@ function renderAction(renderAction) {
             main2dContext.context.translate(renderAction.pos.x, renderAction.pos.y);
             main2dContext.context.rotate(renderAction.rotation);
             main2dContext.context.strokeStyle = colorToStroke(renderAction.color);
-            main2dContext.context.lineWidth = 1;
+            main2dContext.context.lineWidth = (renderAction.size > 30)?2:1;
             main2dContext.context.strokeText(renderAction.text, 0, 0);
             main2dContext.context.fillStyle = colorToRGBA(renderAction.color)
             main2dContext.context.fillText(renderAction.text, 0, 0);
