@@ -15,18 +15,49 @@ const aimPointSettup = {
 
 const emittersTemplates = {
     fire: new EmitterTemplate(
-        [-1, 1],    // birthX range from game object origin 
-        [-1, 1],     // birthy range from game object origin 
-        [-35, 35],  // velX range at birth  
-        [-400, -500],  // velY range at birth 
-        [1, 3],     // radious Range
+        PARTICLESHAPE.PS_POINT,
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, -1, 1],    // birthX range from game object origin 
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, -1, 1],     // birthy range from game object origin 
+        [PARTICLERANGEDISTRIBUTION.PRD_NORMAL, -35, 35],  // velX range at birth  
+        [PARTICLERANGEDISTRIBUTION.PRD_NORMAL, -400, -500],  // velY range at birth 
+        [PARTICLERANGEDISTRIBUTION.PRD_NORMAL, 1, 3],     // size Range
         0.5,         // Emit Time
         700,         // emit Rate
-        [1, 1.2],   // Particle life Range
+        [PARTICLERANGEDISTRIBUTION.PRD_NORMAL, 1, 1.2],   // Particle life Range
         //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
         //{r: 0, g: 0, b: 0, a: 200} // Death Color
         { r: 250, g: 247, b: 247, a: 255 }, // Birth Color
         { r: 245, g: 205, b: 179, a: 200 } // Death Color
+    ),
+    confetiYellow: new EmitterTemplate(
+        PARTICLESHAPE.PS_RECTANGLE,
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, -640, 640],    // birthX range from game object origin 
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, -5, -10],      // birthy range from game object origin 
+        [PARTICLERANGEDISTRIBUTION.PRD_NORMAL, -1, 1],      // velX range at birth  
+        [PARTICLERANGEDISTRIBUTION.PRD_NORMAL, -1, 1],  // velY range at birth 
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 5, 15],     // radious Range
+        30,         // Emit Time
+        20,         // emit Rate
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 3, 4],   // Particle life Range
+        //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
+        //{r: 0, g: 0, b: 0, a: 200} // Death Color
+        { r: 255, g: 255, b: 238, a: 255 }, // Birth Color
+        { r: 255, g: 215, b: 0, a: 200 } // Death Color
+    ),
+    confetiRed: new EmitterTemplate(
+        PARTICLESHAPE.PS_RECTANGLE,
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, -640, 640],    // birthX range from game object origin 
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, -5, -10],      // birthy range from game object origin 
+        [PARTICLERANGEDISTRIBUTION.PRD_NORMAL, -1, 1],      // velX range at birth  
+        [PARTICLERANGEDISTRIBUTION.PRD_NORMAL, -1, 1],  // velY range at birth 
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 5, 15],     // radious Range
+        30,         // Emit Time
+        20,         // emit Rate
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 3, 4],   // Particle life Range
+        //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
+        //{r: 0, g: 0, b: 0, a: 200} // Death Color
+        { r: 255, g: 255, b: 238, a: 255 }, // Birth Color
+        { r: 255, g: 20, b: 10, a: 200 } // Death Color
     ),
 }
 
@@ -106,13 +137,29 @@ const scoreTextsSetup = {
             { type: BEHAVIORTTYPES.BT_BLOCK },
             { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
         ]
+    },
+    perfectAnim: {
+        minScore: 3,
+        chance: 0.3,
+        sprite: "perfectAnim",
+        pos: { x: 570, y: 530 },
+        size: 2,
+        rotation: -0.1,
+        behaviorQueue: [
+            { type: BEHAVIORTTYPES.BT_SCALE, to: 1, interpolationType: INTERPOLATIONTYPE.IT_EASIOUT, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_FADE, from: 0, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_WAIT, time: 1.3 },
+            { type: BEHAVIORTTYPES.BT_FADE, from: 255, to: 0, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.2 },
+            { type: BEHAVIORTTYPES.BT_BLOCK },
+            { type: BEHAVIORTTYPES.BT_KILL, time: 0.0 }
+        ]
     }
 }
 
 const inGameSetup = {
     targetSize: 30,
     lives: 10,
-    controlIgnoreTime: .3,           // How much we wait before allowing another input
+    controlIgnoreTime: .2,          // How much we wait before allowing another input
     controlEventTimeout: 15,        // How long we wait for input before Game Over
     controlEventLabelStartAt: 5,    // How much time remaining before showing the timer on screen
 };
@@ -164,6 +211,28 @@ const homeScreenSetup = {
         color: { r: 0, g: 255, b: 0, a: 255 },
         align: "center",
         rotation: 0
+    },
+    credits: {
+        label: "(c) Francisco Leiva 2023. All sounds, songs and images used in the game belong to their respective owners.",
+        pos: { x: 10, y: 710 },
+        size: 10,
+        color: { r: 0, g: 0, b: 0, a: 255 },
+        align: "left",
+        rotation: 0
+    },
+    tease: {
+        sprite: "teaseAnim",
+        pos: { x: 1280, y: 320 },
+        size: 1,
+        color: commonColors.black,
+        rotation: -.2,
+        behaviorQueue: [
+            { type: BEHAVIORTTYPES.BT_MOVETO, to: {x: -500, y: 560}, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 20 },
+            { type: BEHAVIORTTYPES.BT_WAIT, time: 15.0 },
+            { type: BEHAVIORTTYPES.BT_MOVETO, to: {x: 1280, y: 50}, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 15 },
+            
+        ]
+
     }
 }
 
@@ -282,7 +351,7 @@ var images = {
     },
     "logo": {
         image: null,
-        path: "img/logo3.png",
+        path: "img/logo4.png",
         size: { x: 1000, y: 300 },
         //loaded: false
     },
@@ -324,6 +393,39 @@ var images = {
             cols: 3,
             frames: 3,
             frameTime: 0.15
+        }
+    },
+    "painAnim": {
+        image: null,
+        path: "img/painAnim.png",
+        size: { x: 2500, y: 548 },
+        animation: {
+            rows: 2,
+            cols: 5,
+            frames: 8,
+            frameTime: 0.1
+        }
+    },
+    "teaseAnim": {
+        image: null,
+        path: "img/teaseAnim.png",
+        size: { x: 2500, y: 2248 },
+        animation: {
+            rows: 8,
+            cols: 5,
+            frames: 37,
+            frameTime: 0.04
+        }
+    },
+    "perfectAnim": {
+        image: null,
+        path: "img/perfectAnim.png",
+        size: { x: 1225, y: 875 },
+        animation: {
+            rows: 5,
+            cols: 5,
+            frames: 25,
+            frameTime: 0.1
         }
     }
 }
@@ -553,6 +655,15 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
             },
             */
             {
+                type: GAMEOBJECTTYPE.GOT_SPRITE,
+                size: homeScreenSetup.tease.size,
+                pos: structuredClone(homeScreenSetup.tease.pos),
+                color: homeScreenSetup.tease.color,
+                id: homeScreenSetup.tease.sprite,
+                rotation: homeScreenSetup.tease.rotation,
+                behaviorQueue: structuredClone(homeScreenSetup.tease.behaviorQueue)
+            },
+            {
                 type: GAMEOBJECTTYPE.GOT_IMAGE,
                 size: 1,
                 pos: homeScreenSetup.logo.pos,
@@ -581,6 +692,18 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
                     { type: BEHAVIORTTYPES.BT_BLOCK },
                     { type: BEHAVIORTTYPES.BT_WAIT, time: 0.1 },
                     { type: BEHAVIORTTYPES.BT_LOOP },
+                ]
+            }
+            ,
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: homeScreenSetup.credits.label,
+                pos: homeScreenSetup.credits.pos,
+                color: homeScreenSetup.credits.color,
+                size: homeScreenSetup.credits.size,
+                align: homeScreenSetup.credits.align,
+                rotation: homeScreenSetup.credits.rotation,
+                behaviorQueue: [
                 ]
             }
         );
@@ -665,6 +788,18 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
                 rotation: 0,
                 behaviorQueue: [
                 ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_SPRITE,
+                id: "painAnim",
+                size: 1,
+                pos: { x: 450, y: 0 },
+                color: structuredClone(commonColors.black),
+                size: 1, 
+                rotation: 0.1,
+                behaviorQueue: [
+                    { type: BEHAVIORTTYPES.BT_FADE, to: 255, interpolationType: INTERPOLATIONTYPE.IT_LINEAL, time: 0.4 }
+                ]
             }
         );
     }, // OnEnter
@@ -692,6 +827,20 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
         gameObjects.onScreenTimmer = 0;
         gameObjects.objects.push(
             {
+                type: GAMEOBJECTTYPE.GOT_PARTICLE_EMITTER,
+                pos: { x: 640, y: 0 },
+                emitterTemplate: emittersTemplates.confetiYellow,
+                behaviorQueue: [
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_PARTICLE_EMITTER,
+                pos: { x: 640, y: 0 },
+                emitterTemplate: emittersTemplates.confetiRed,
+                behaviorQueue: [
+                ]
+            },
+            {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
                 label: leaderboardSetup.title.label,
                 pos: leaderboardSetup.title.pos,
@@ -712,7 +861,7 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
                 rotation: 0,
                 behaviorQueue: [
                 ]
-            }
+            },
         );
 
         let rowPosition = leaderboardSetup.rows.startAt;
@@ -898,6 +1047,21 @@ function stepAimPoint(dt) {
                     behaviorQueue: structuredClone(scoreTextsSetup.hitTexts.behaviorQueue)
                 }
             );
+            if (gameObjects.hitsInARow >= scoreTextsSetup.perfectAnim.minScore
+                && Math.random() < scoreTextsSetup.perfectAnim.chance) {
+                gameObjects.objects.push(
+                    {
+                        type: GAMEOBJECTTYPE.GOT_SPRITE,
+                        size: structuredClone(scoreTextsSetup.perfectAnim.size),
+                        pos: structuredClone(scoreTextsSetup.perfectAnim.pos),
+                        color: structuredClone(commonColors.white),
+                        id: scoreTextsSetup.perfectAnim.sprite,
+                        rotation: structuredClone(scoreTextsSetup.perfectAnim.rotation),
+                        behaviorQueue: structuredClone(scoreTextsSetup.perfectAnim.behaviorQueue)
+                    }
+                );
+            }
+
             resouceSoundPlay(sounds['hitSuccess']);
             if (gameObjects.score > gameObjects.record) {
                 gameObjects.record = gameObjects.score;
@@ -1106,6 +1270,7 @@ function stepObjects(dt) {
                     {
                         type: RENDERACTIONTYPE.RAT_PARTICLES_AT,
                         pos: theObject.pos,
+                        shape: theObject.emitterTemplate.shape,
                         particles: theObject.emiterData.particles // this is a reference, right?
                     });
                 break;

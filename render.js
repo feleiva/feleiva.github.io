@@ -90,12 +90,20 @@ function renderAction(renderAction) {
             break
         case RENDERACTIONTYPE.RAT_PARTICLES_AT:
             // This can be largelly optimized if we knew all particles are the same color
-            for (pt of renderAction.particles) {
-                main2dContext.context.fillStyle = colorToRGBA(pt.color)
-                main2dContext.context.beginPath();
-                main2dContext.context.arc(renderAction.pos.x + pt.pos.x, renderAction.pos.y + pt.pos.y, pt.radius, 0, 2*Math.PI)
-                main2dContext.context.closePath();
-                main2dContext.context.fill();
+            if (renderAction.shape == PARTICLESHAPE.PS_POINT) {
+                for (pt of renderAction.particles) {
+                    main2dContext.context.fillStyle = colorToRGBA(pt.color)
+                    main2dContext.context.beginPath();
+                    main2dContext.context.arc(renderAction.pos.x + pt.pos.x, renderAction.pos.y + pt.pos.y, pt.radius, 0, 2*Math.PI)
+                    main2dContext.context.closePath();
+                    main2dContext.context.fill();
+                }
+            }
+            else {
+                for (pt of renderAction.particles) {
+                    main2dContext.context.fillStyle = colorToRGBA(pt.color)
+                    main2dContext.context.fillRect(renderAction.pos.x + pt.pos.x, renderAction.pos.y + pt.pos.y, pt.size.x, pt.size.y);
+                }        
             }
             break
     }

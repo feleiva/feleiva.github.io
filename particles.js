@@ -1,51 +1,66 @@
+const PARTICLESHAPE = Object.freeze({
+    PS_RECTANGLE: 0,    // Lineal interpolation
+    PS_POINT: 1,        // Start slow, finish fast
+});   
+
+const PARTICLERANGEDISTRIBUTION = Object.freeze({
+    PRD_UNIRFORM: 0,        // Uniform Distribution
+    PRD_NORMAL: 1,          // Normal Distribution
+});
+
 function particlesInterpolate(factor, from, to) { 
     return from + (factor * (to - from));
 }
 
 function particlesRandomFromRange(range) { // range is [min, max]
-    return (Math.random() * (range[1] - range[0])) + range[0];
-}
+    switch(range[0]) {
+        case PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM:
+            return (Math.random() * (range[2] - range[1])) + range[1];
+            break;
+        case PARTICLERANGEDISTRIBUTION.PRD_NORMAL:
+            let probAcum = 0
+            for (let i=0; i< 12; i++)
+                probAcum += Math.random()
+            probAcum -= 6;
 
-function particlesNormalRandomFromRange(range) { // range is [min, max]
-    let probAcum = 0
-    for (let i=0; i< 12; i++)
-        probAcum += Math.random()
-    probAcum -= 6;
+            // If we trust the internet, probAcum is now a random number on the standard normal distribution (means average is 0 and std is 1)
+            let expectedMean    = (range[1] + range[2])/2; // center of the range
+            let expectedStd     = ((range[2] - range[1])/(2*3)); // Half of the range. the x3 is my attempt to keep most of the values within the range. 
 
-    // If we trust the internet, probAcum is now a random number on the standard normal distribution (means average is 0 and std is 1)
-    let expectedMean    = (range[0] + range[1])/2; // center of the range
-    let expectedStd     = ((range[1] - range[0])/(2*3)); // Half of the range. the x3 is my attempt to keep most of the values within the range. 
+            let output = (probAcum * expectedStd) + expectedMean; // Correct the value to the right std and mean
 
-    let output = (probAcum * expectedStd) + expectedMean; // Correct the value to the right std and mean
+            // This is only made to avoid issues, with things like the radius. It's normal that a few values land outside of the range
+            if (output < range[1])
+                output = range[1];
+            else if (output > range[2])
+                output = range[2]
 
-    // This is only made to avoid issues, with things like the radius. It's normal that a few values land outside of the range
-    if (output < range[0])
-        output = range[0];
-    else if (output > range[1])
-        output = range[1]
-
-    return output;
+            return output;
+            break
+    }
+    return range[1];
 }
 
 function fixRange(range) {
-    if (range[1] == range[0]) {
+    if (range[2] == range[1]) {
         alert("Error on Range definition, values must be different")
         return;
     }
 
-    if (range[1] < range[0]) {
-        let tmp = range[0];
-        range[0] = range[1];
-        range[1] = tmp;
+    if (range[2] < range[1]) {
+        let tmp = range[1];
+        range[1] = range[2];
+        range[2] = tmp;
     }
 }
 
-function EmitterTemplate(posXRange, posYRange, velXRange, velYRange, radiusRange, emitTime, rate, lifeRange, colorFrom, colorTo) {
+function EmitterTemplate(shape, posXRange, posYRange, velXRange, velYRange, sizeRange, emitTime, rate, lifeRange, colorFrom, colorTo) {
+    this.shape          = shape;
     this.posXRange      = posXRange;
     this.posYRange      = posYRange;
     this.velXRange      = velXRange;
     this.velYRange      = velYRange;
-    this.radiusRange    = radiusRange;
+    this.sizeRange      = sizeRange;
     this.emitTime       = emitTime;
     this.rate           = rate;
     this.emitTimeSpan   = 1/rate;
@@ -57,18 +72,23 @@ function EmitterTemplate(posXRange, posYRange, velXRange, velYRange, radiusRange
     fixRange(this.posYRange);
     fixRange(this.velXRange);
     fixRange(this.velYRange);
-    fixRange(this.radiusRange);
+    fixRange(this.sizeRange);
     fixRange(this.lifeRange);
 }
 
 function Particle(template) {
     this.template       = template
-    this.pos            = {x: particlesNormalRandomFromRange(template.posXRange), y: particlesNormalRandomFromRange(template.posYRange)},
-    this.vel            = {x: particlesNormalRandomFromRange(template.velXRange), y: particlesNormalRandomFromRange(template.velYRange)},
-    this.radius         = particlesNormalRandomFromRange(template.radiusRange)
-    this.lifeRemaining  = particlesNormalRandomFromRange(template.lifeRange)
+    this.pos            = {x: particlesRandomFromRange(template.posXRange), y: particlesRandomFromRange(template.posYRange)},
+    this.vel            = {x: particlesRandomFromRange(template.velXRange), y: particlesRandomFromRange(template.velYRange)},
+    this.lifeRemaining  = particlesRandomFromRange(template.lifeRange)
     this.lifeTotal      = this.lifeRemaining
     this.color          = template.colorFrom
+
+    if (template.shape == PARTICLESHAPE.PS_POINT)
+        this.radius         = particlesRandomFromRange(template.sizeRange)
+    else 
+        this.size         = {x: particlesRandomFromRange(template.sizeRange), y: particlesRandomFromRange(template.sizeRange)}
+    
 }
 
 function particlesStep(dt, emiterTemplate, emiterData) {
