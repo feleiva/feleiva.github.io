@@ -573,6 +573,11 @@ function editLeaderboard(playerPos, playerName) {
     }
 }
 
+function tryShowLeaderboard() {
+    if (__FSMCurrentState == GAMESTATES.GS_HOME_SCREEN) {
+        FSMTransitToState(GAMESTATES.GS_LEADERBOARD);
+    }
+}
 
 function getRndInteger(min, max) { // Max is included
     max = max + 1;
@@ -798,18 +803,17 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
     (dt) => {
         if (inputTapDetected()) {
             __renderActions.clearAction = { type: RENDERACTIONTYPE.RAT_CLEAR }
-            clearGameObjects();
             FSMTransitToState(GAMESTATES.GS_IN_GAME);
         }
         else {
             gameObjects.onScreenTimmer += dt;
             if (gameObjects.onScreenTimmer > homeScreenSetup.onScreenMaxTime) {
-                clearGameObjects();
                 FSMTransitToState(GAMESTATES.GS_LEADERBOARD);
             }
         }
     }, // OnStep
     () => {
+        clearGameObjects();
         resouceSoundStop(sounds['outGameMusic']);
     } //OnExit
 )

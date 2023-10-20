@@ -1,60 +1,75 @@
 
-const __debugKeyThreashold = 5;
+const __debugKeyThreashold = 2;
 
 var __debugToolsState = {
+    holdKeyTime: {},
     showFPSToggleTime: 0,
     showFPS: false,
     resetLeaderboardsTime: 0,
     editLBTime: 0
 }
 
+var __keysToFollow = {
+    'f': {
+        waitTime: __debugKeyThreashold,
+        execute: debugToggleFPS,
+        timmer: 0,
+    },
+    'r': {
+        waitTime: 5 * __debugKeyThreashold,
+        execute: debugResetLeaderboard,
+        timmer: 0,
+    },
+    'c': {
+        waitTime: __debugKeyThreashold,
+        execute: debugEditLeaderboard,
+        timmer: 0,
+    },
+    'l': {
+        waitTime:  __debugKeyThreashold,
+        execute: debugShowLeaderboard,
+        timmer: 0,
+    },
+}
+
+
+function debugToggleFPS() {
+    console.log("DEBUGTOOLS>> Toggle FPS");
+    __debugToolsState.showFPS = !__debugToolsState.showFPS;
+}
+
+function debugResetLeaderboard() {
+    console.log("DEBUGTOOLS>> Reset Leaderboards and Record")
+    leaderboardReset();
+    leaderboardTryAddEntry("FLC", 5);
+    gameObjects.record = 5;
+    localStorage.setItem('record', gameObjects.record);
+}
+
+function debugEditLeaderboard() {
+    console.log("DEBUGTOOLS>> Edit Leaderboards");
+    askLBEdit();
+}
+
+function debugShowLeaderboard() {
+    console.log("DEBUGTOOLS>> Try Show Leaderboards");
+    tryShowLeaderboard();
+}
+
 function debugToolsStep(dt) {
 
-    // Set the counters
-    if (inputKeyDetected("f")) {
-        __debugToolsState.showFPSToggleTime += dt;
-    }
-    else
-    {
-        __debugToolsState.showFPSToggleTime = 0;
-    }
+    for (const key in __keysToFollow) {
+        if (inputKeyDetected(key)) {
+            __keysToFollow[key].timmer += dt;
+        }
+        else {
+            __keysToFollow[key].timmer = 0;
+        }
 
-    if (inputKeyDetected("r")) {
-        __debugToolsState.resetLeaderboardsTime += dt;
-    }
-    else
-    {
-        __debugToolsState.resetLeaderboardsTime = 0;
-    }
-
-    if (inputKeyDetected("c")) {
-        __debugToolsState.editLBTime += dt;
-    }
-    else
-    {
-        __debugToolsState.editLBTime = 0;
-    }
-
-    // Check the time on the countes and act accordingly.
-    if (__debugToolsState.showFPSToggleTime > __debugKeyThreashold) {
-        console.log("DEBUGTOOLS>> Toggle FPS");
-        __debugToolsState.showFPS = !__debugToolsState.showFPS;
-        __debugToolsState.showFPSToggleTime = 0;
-    }
-    
-    if (__debugToolsState.resetLeaderboardsTime > 2 *__debugKeyThreashold) {
-        console.log("DEBUGTOOLS>> Reset Leaderboards and Record")
-        leaderboardReset();
-        leaderboardTryAddEntry("FLC", 5);
-        gameObjects.record = 5;
-        localStorage.setItem('record', gameObjects.record);
-        __debugToolsState.resetLeaderboardsTime = 0;
-    }
-
-    if (__debugToolsState.editLBTime > __debugKeyThreashold) {
-        console.log("DEBUGTOOLS>> Edit Leaderboards");
-        askLBEdit();
-        __debugToolsState.editLBTime = 0;
+        if (__keysToFollow[key].timmer >= __keysToFollow[key].waitTime) {
+            __keysToFollow[key].execute();
+            __keysToFollow[key].timmer = 0;
+        }
     }
 
     if (__debugToolsState.showFPS) {
