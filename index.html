@@ -29,9 +29,21 @@
         background-color: lightgrey;
         border: 3px solid #000000;
         font-family: 'Orbitron'">
-        <label for="fname">Your Name</label>
-        <input type="text" id="fname" name="fname" maxlength="25">
+        Your Name <input type="text" id="fname" name="fname" maxlength="25">
         <button type="button" id="nameButton" onclick="setPlayerName(document.getElementById('fname').value)">Save</button>
+    </div>
+    <div id="lbEdit" style="
+        display:none;
+        position: fixed;
+        top: 200px;
+        left: 390px;
+        padding: 120px;
+        background-color: lightcoral;
+        border: 3px solid red;
+        font-family: 'Orbitron'">
+        Position <input type="text" id="editPos" name="editPos" maxlength="2" onchange="updateLBEdit()"><BR>
+        Name <input type="text" id="editName" name="editName" maxlength="25">
+        <button type="button" id="editButton" onclick="editLeaderboard(document.getElementById('editPos').value, document.getElementById('editName').value)">Save</button>
     </div>
 </body>
 </html>

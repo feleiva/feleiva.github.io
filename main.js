@@ -535,9 +535,44 @@ function askPlayerName() {
 function setPlayerName(playerName) {
     if (playerName != "") {
         gameObjects.playerName = playerName;
+        document.getElementById("fname").value = "";
         document.getElementById("playerName").style.display = 'none';
     }
 }
+
+function askLBEdit() {
+    let inputPos = document.getElementById("editPos");
+    let inputText = document.getElementById("editName");
+    if (inputPos && inputText) {
+        document.getElementById("lbEdit").style.display = 'block';
+        inputPos.value = "";
+        inputText.value = "";
+        inputPos.focus();
+    }
+}
+
+function updateLBEdit() {
+    let inputPos = document.getElementById("editPos");
+    let inputText = document.getElementById("editName");
+    if (inputPos && inputText) {
+        let playerData = leaderboardGetSlot(Number(inputPos.value));
+        if ("name" in playerData)
+        {
+            inputText.value = playerData.name;
+            inputText.focus();
+        }
+    }
+}
+
+function editLeaderboard(playerPos, playerName) {
+    if (playerPos != "" && playerName != "") {
+        leaderboardUpdateSlotName(Number(playerPos), playerName);
+        document.getElementById("editPos").value = "";
+        document.getElementById("editName").value = "";
+        document.getElementById("lbEdit").style.display = 'none';
+    }
+}
+
 
 function getRndInteger(min, max) { // Max is included
     max = max + 1;
@@ -817,6 +852,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
 FSMRegisterState(GAMESTATES.GS_FINISHED,
     () => {
         setDarkVeil(true);
+        gameObjects.playerName = "";
         askPlayerName();
         resouceSoundPlay(sounds['needAHug']);
         gameObjects.lives = 0;
@@ -876,7 +912,9 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
             document.getElementById("nameButton").click();
         }
         if (gameObjects.playerName != "") {
+            console.log("Leaderboard: Adding name: " + gameObjects.playerName + " score: " +  gameObjects.score);
             leaderboardTryAddEntry(gameObjects.playerName, gameObjects.score);
+            gameObjects.playerName = "";
             FSMTransitToState(GAMESTATES.GS_LEADERBOARD)
         }
     }, // OnStep

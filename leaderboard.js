@@ -46,7 +46,7 @@ function leaderboardTryAddEntry(name, score) {
     while (__leaderBoardData.entries.length > _kMaxLeaderboardEntries)
         __leaderBoardData.entries.pop();
 
-    //_leaderboardDump(); // Dump Post
+    _leaderboardDump(); // Dump Post
     _leaderboardStore();
 }
 
@@ -56,6 +56,25 @@ function leaderboardGetBestPlayer()
         return __leaderBoardData.entries[0];
     else 
         return {score: 5, name: "Flc"}
+}
+
+
+function leaderboardGetSlot(slot)
+{
+    if (slot < 1 || slot > __leaderBoardData.entries.length)
+        return {};
+    
+    return __leaderBoardData.entries[slot-1];
+}
+
+
+function leaderboardUpdateSlotName(slot, newName)
+{
+    if (slot < 1 || slot > __leaderBoardData.entries.length)
+        return;
+
+    __leaderBoardData.entries[slot-1].name = newName;
+    _leaderboardStore();
 }
 
 

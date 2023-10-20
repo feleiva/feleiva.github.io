@@ -5,6 +5,7 @@ var __debugToolsState = {
     showFPSToggleTime: 0,
     showFPS: false,
     resetLeaderboardsTime: 0,
+    editLBTime: 0
 }
 
 function debugToolsStep(dt) {
@@ -26,13 +27,21 @@ function debugToolsStep(dt) {
         __debugToolsState.resetLeaderboardsTime = 0;
     }
 
+    if (inputKeyDetected("c")) {
+        __debugToolsState.editLBTime += dt;
+    }
+    else
+    {
+        __debugToolsState.editLBTime = 0;
+    }
+
     // Check the time on the countes and act accordingly.
     if (__debugToolsState.showFPSToggleTime > __debugKeyThreashold) {
         console.log("DEBUGTOOLS>> Toggle FPS");
         __debugToolsState.showFPS = !__debugToolsState.showFPS;
         __debugToolsState.showFPSToggleTime = 0;
     }
-
+    
     if (__debugToolsState.resetLeaderboardsTime > 2 *__debugKeyThreashold) {
         console.log("DEBUGTOOLS>> Reset Leaderboards and Record")
         leaderboardReset();
@@ -40,6 +49,12 @@ function debugToolsStep(dt) {
         gameObjects.record = 5;
         localStorage.setItem('record', gameObjects.record);
         __debugToolsState.resetLeaderboardsTime = 0;
+    }
+
+    if (__debugToolsState.editLBTime > __debugKeyThreashold) {
+        console.log("DEBUGTOOLS>> Edit Leaderboards");
+        askLBEdit();
+        __debugToolsState.editLBTime = 0;
     }
 
     if (__debugToolsState.showFPS) {
