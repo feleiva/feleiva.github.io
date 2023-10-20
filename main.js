@@ -206,9 +206,23 @@ const homeScreenSetup = {
     },
     subTitle: {
         label: "Tap To Play",
-        pos: { x: 640, y: 560 },
+        pos: { x: 640, y: 600 },
         size: 60,
-        color: { r: 0, g: 255, b: 0, a: 255 },
+        color: commonColors.green,
+        align: "center",
+        rotation: 0
+    },
+    bestPlayer: {
+        pos: { x: 640, y: 350 },
+        size: 40,
+        color: commonColors.red,
+        align: "center",
+        rotation: 0
+    },
+    bestScore: {
+        pos: { x: 640, y: 400 },
+        size: 40,
+        color: commonColors.red,
         align: "center",
         rotation: 0
     },
@@ -216,7 +230,7 @@ const homeScreenSetup = {
         label: "(c) Francisco Leiva 2023. All sounds, songs and images used in the game belong to their respective owners.",
         pos: { x: 10, y: 710 },
         size: 10,
-        color: { r: 0, g: 0, b: 0, a: 255 },
+        color: commonColors.black,
         align: "left",
         rotation: 0
     },
@@ -240,7 +254,7 @@ const hudSetup = {
     score: {
         pos: { x: 1230, y: 50 },
         label: "Score: ",
-        size: 30,
+        size: 40,
         color: commonColors.black,
         align: "right",
         digits: 5,
@@ -248,17 +262,17 @@ const hudSetup = {
     },
     record: {
         pos: { x: 50, y: 50 },
-        label: "Record: ",
-        size: 30,
+        label: "Best Score:",
+        size: 40,
         color: commonColors.red,
         align: "left",
         digits: 5,
         rotation: 0
     },
     lives: {
-        pos: { x: 1230, y: 80 },
-        size: 20,
-        color: commonColors.blue,
+        pos: { x: 1230, y: 100 },
+        size: 40,
+        color: commonColors.black,
         align: "right",
         label: "Lives: ",
         digits: "2",
@@ -441,6 +455,14 @@ var sounds = {
     },
     "hitFail": {
         filePath: "sound/HitFail.mp3",
+        loop: false,
+        singleInstance: false,
+        volume: 1.0,
+        buffer: null,
+        soundNode: null
+    },
+    "LetsDoThatAgain": {
+        filePath: "sound/LetsDoThatAgain.mp3",
         loop: false,
         singleInstance: false,
         volume: 1.0,
@@ -635,6 +657,7 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
         // Start outGame Music
         resouceSoundPlay(sounds['outGameMusic']);
         gameObjects.onScreenTimmer = 0;
+        let bestPlayer = leaderboardGetBestPlayer();
         gameObjects.objects.push(
             {
                 type: GAMEOBJECTTYPE.GOT_IMAGE,
@@ -686,10 +709,32 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
             },
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: "Best Player " + bestPlayer.name,
+                pos: homeScreenSetup.bestPlayer.pos,
+                color: homeScreenSetup.bestPlayer.color,
+                size: homeScreenSetup.bestPlayer.size,
+                align: homeScreenSetup.bestPlayer.align,
+                rotation: homeScreenSetup.bestPlayer.rotation,
+                behaviorQueue: [
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
+                label: bestPlayer.score +" Points",
+                pos: homeScreenSetup.bestScore.pos,
+                color: homeScreenSetup.bestScore.color,
+                size: homeScreenSetup.bestScore.size,
+                align: homeScreenSetup.bestScore.align,
+                rotation: homeScreenSetup.bestScore.rotation,
+                behaviorQueue: [
+                ]
+            },
+            {
+                type: GAMEOBJECTTYPE.GOT_TEXT,
                 label: homeScreenSetup.subTitle.label,
                 pos: homeScreenSetup.subTitle.pos,
-                color: homeScreenSetup.subTitle.color,
-                size: homeScreenSetup.subTitle.size,
+                color: structuredClone(homeScreenSetup.subTitle.color),
+                size: structuredClone(homeScreenSetup.subTitle.size),
                 align: homeScreenSetup.subTitle.align,
                 rotation: homeScreenSetup.subTitle.rotation,
                 behaviorQueue: [
@@ -701,8 +746,7 @@ FSMRegisterState(GAMESTATES.GS_HOME_SCREEN,
                     { type: BEHAVIORTTYPES.BT_WAIT, time: 0.1 },
                     { type: BEHAVIORTTYPES.BT_LOOP },
                 ]
-            }
-            ,
+            },
             {
                 type: GAMEOBJECTTYPE.GOT_TEXT,
                 label: homeScreenSetup.credits.label,
@@ -759,6 +803,7 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
 
         // Start Ingame Music
         resouceSoundPlay(sounds['inGameMusic']);
+        resouceSoundPlay(sounds['LetsDoThatAgain']);
     }, // OnEnter
     (dt) => {
         stepInGameBackground(dt);
@@ -892,8 +937,8 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
                     type: GAMEOBJECTTYPE.GOT_TEXT,
                     label: "" + (i + 1),
                     pos: v2Add(rowPosition, leaderboardSetup.position.relativePos),
-                    color: structuredClone(leaderboardSetup.rows.color),
-                    size: leaderboardSetup.rows.size,
+                    color: (i==0)?structuredClone(commonColors.red):structuredClone(leaderboardSetup.rows.color),
+                    size: (i==0)?leaderboardSetup.rows.size+10:leaderboardSetup.rows.size,
                     align: leaderboardSetup.position.align,
                     rotation: leaderboardSetup.rows.rotation,
                     behaviorQueue: [
@@ -903,8 +948,8 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
                     type: GAMEOBJECTTYPE.GOT_TEXT,
                     label: entry.name,
                     pos: v2Add(rowPosition, leaderboardSetup.names.relativePos),
-                    color: structuredClone(leaderboardSetup.rows.color),
-                    size: leaderboardSetup.rows.size,
+                    color: (i==0)?structuredClone(commonColors.red):structuredClone(leaderboardSetup.rows.color),
+                    size: (i==0)?leaderboardSetup.rows.size+10:leaderboardSetup.rows.size,
                     align: leaderboardSetup.names.align,
                     rotation: leaderboardSetup.rows.rotation,
                     behaviorQueue: [
@@ -914,8 +959,8 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
                     type: GAMEOBJECTTYPE.GOT_TEXT,
                     label: entry.score,
                     pos: v2Add(rowPosition, leaderboardSetup.scores.relativePos),
-                    color: structuredClone(leaderboardSetup.rows.color),
-                    size: leaderboardSetup.rows.size,
+                    color: (i==0)?structuredClone(commonColors.red):structuredClone(leaderboardSetup.rows.color),
+                    size: (i==0)?leaderboardSetup.rows.size+10:leaderboardSetup.rows.size,
                     align: leaderboardSetup.scores.align,
                     rotation: leaderboardSetup.rows.rotation,
                     behaviorQueue: [

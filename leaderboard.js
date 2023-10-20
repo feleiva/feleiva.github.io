@@ -50,6 +50,14 @@ function leaderboardTryAddEntry(name, score) {
     _leaderboardStore();
 }
 
+function leaderboardGetBestPlayer()
+{
+    if (__leaderBoardData.entries.length > 0)
+        return __leaderBoardData.entries[0];
+    else 
+        return {score: 5, name: "Flc"}
+}
+
 
 function leaderboardReset() {
     console.log("LEADEROARD>> Reseting")
