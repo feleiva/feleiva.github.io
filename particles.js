@@ -54,7 +54,7 @@ function fixRange(range) {
     }
 }
 
-function EmitterTemplate(shape, posXRange, posYRange, velXRange, velYRange, sizeRange, emitTime, rate, lifeRange, colorFrom, colorTo) {
+function EmitterTemplate(shape, posXRange, posYRange, velXRange, velYRange, sizeRange, emitTime, rate, lifeRange, colorFrom, colorTo, rotationSpeedRange) {
     this.shape          = shape;
     this.posXRange      = posXRange;
     this.posYRange      = posYRange;
@@ -67,6 +67,7 @@ function EmitterTemplate(shape, posXRange, posYRange, velXRange, velYRange, size
     this.lifeRange      = lifeRange;
     this.colorFrom      = colorFrom;
     this.colorTo        = colorTo;
+    this.rotSpeedRange  = rotationSpeedRange;
 
     fixRange(this.posXRange);
     fixRange(this.posYRange);
@@ -74,6 +75,10 @@ function EmitterTemplate(shape, posXRange, posYRange, velXRange, velYRange, size
     fixRange(this.velYRange);
     fixRange(this.sizeRange);
     fixRange(this.lifeRange);
+    if (this.rotSpeedRange) {
+        fixRange(this.rotSpeedRange);
+    }
+
 }
 
 function Particle(template) {
@@ -83,12 +88,22 @@ function Particle(template) {
     this.lifeRemaining  = particlesRandomFromRange(template.lifeRange)
     this.lifeTotal      = this.lifeRemaining
     this.color          = template.colorFrom
+    this.rotation       = 0;
 
-    if (template.shape == PARTICLESHAPE.PS_POINT)
+    if (template.shape == PARTICLESHAPE.PS_POINT) {
         this.radius         = particlesRandomFromRange(template.sizeRange)
-    else 
+        this.rotSpeed       = 0;
+    }
+    else {
         this.size         = {x: particlesRandomFromRange(template.sizeRange), y: particlesRandomFromRange(template.sizeRange)}
-    
+        if (template.rotSpeedRange) {
+            this.rotation = Math.random() * 2 * Math.PI;
+            this.rotSpeed = particlesRandomFromRange(template.rotSpeedRange)
+        }
+        else {
+            this.rotSpeed = 0
+        }
+    }
 }
 
 function particlesStep(dt, emiterTemplate, emiterData) {
@@ -112,10 +127,11 @@ function particlesStep(dt, emiterTemplate, emiterData) {
         }
 
         // Update Position
-        aceleration = {x: 0, y: 98}
-        particle.vel = {x: particle.vel.x + aceleration.x * dt, y: particle.vel.y + aceleration.y * dt} ;
-        particle.pos = {x: particle.pos.x + particle.vel.x * dt, y: particle.pos.y + particle.vel.y * dt}
-        
+        aceleration         = {x: 0, y: 98}
+        particle.vel        = {x: particle.vel.x + aceleration.x * dt, y: particle.vel.y + aceleration.y * dt} ;
+        particle.pos        = {x: particle.pos.x + particle.vel.x * dt, y: particle.pos.y + particle.vel.y * dt}
+        particle.rotation   += particle.rotSpeed * dt;
+
         // Update color
         lifeFraction = 1.0 - particle.lifeRemaining/particle.lifeTotal;
         particle.color = {

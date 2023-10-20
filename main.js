@@ -27,7 +27,8 @@ const emittersTemplates = {
         //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
         //{r: 0, g: 0, b: 0, a: 200} // Death Color
         { r: 250, g: 247, b: 247, a: 255 }, // Birth Color
-        { r: 245, g: 205, b: 179, a: 200 } // Death Color
+        { r: 245, g: 205, b: 179, a: 200 }, // Death Color
+        null
     ),
     confetiYellow: new EmitterTemplate(
         PARTICLESHAPE.PS_RECTANGLE,
@@ -42,7 +43,8 @@ const emittersTemplates = {
         //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
         //{r: 0, g: 0, b: 0, a: 200} // Death Color
         { r: 255, g: 255, b: 238, a: 255 }, // Birth Color
-        { r: 255, g: 215, b: 0, a: 200 } // Death Color
+        { r: 255, g: 215, b: 0, a: 200 }, // Death Color
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, -0.8, 0.8],
     ),
     confetiRed: new EmitterTemplate(
         PARTICLESHAPE.PS_RECTANGLE,
@@ -57,7 +59,8 @@ const emittersTemplates = {
         //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
         //{r: 0, g: 0, b: 0, a: 200} // Death Color
         { r: 255, g: 255, b: 238, a: 255 }, // Birth Color
-        { r: 255, g: 20, b: 10, a: 200 } // Death Color
+        { r: 255, g: 20, b: 10, a: 200 }, // Death Color
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, -1.0, 1.0],
     ),
 }
 
