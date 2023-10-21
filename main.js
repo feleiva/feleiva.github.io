@@ -11,6 +11,7 @@ const aimPointSettup = {
     maxAmplitude: 50,               // Max distance to target
     amplitudePhase: 3.0,            // 1 full cycle every 2*PI seconds
     dificultiFactor: 0.03,          // How much harder it becomes with every new point
+    lagCompensation: 0.1,
 };
 
 const emittersTemplates = {
@@ -39,7 +40,7 @@ const emittersTemplates = {
         [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 5, 15],     // radious Range
         30,         // Emit Time
         20,         // emit Rate
-        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 3, 4],   // Particle life Range
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 3.5, 4],   // Particle life Range
         //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
         //{r: 0, g: 0, b: 0, a: 200} // Death Color
         { r: 255, g: 255, b: 238, a: 255 }, // Birth Color
@@ -55,7 +56,7 @@ const emittersTemplates = {
         [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 5, 15],     // radious Range
         30,         // Emit Time
         20,         // emit Rate
-        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 3, 4],   // Particle life Range
+        [PARTICLERANGEDISTRIBUTION.PRD_UNIRFORM, 3.5, 4],   // Particle life Range
         //{r: 0, g: 0, b: 0, a: 255}, // Birth Color
         //{r: 0, g: 0, b: 0, a: 200} // Death Color
         { r: 255, g: 255, b: 238, a: 255 }, // Birth Color
@@ -349,6 +350,7 @@ var gameObjects = {
     tutorialTimer: 0,
     onScreenTimmer: 0,
     playerName: "",
+    lagCompensationTimmer: 0,
     // Add other generic items here
     objects: []
 };
@@ -1069,6 +1071,8 @@ function stepAimPoint(dt) {
     gameObjects.aimPoint.pos.x = gameObjects.target.pos.x - currentAmplitude * Math.sin(gameObjects.aimPoint.angle);
     gameObjects.aimPoint.pos.y = gameObjects.target.pos.y + currentAmplitude * Math.cos(gameObjects.aimPoint.angle);
 
+    gameObjects.lagCompensationTimmer -= dt;
+
     __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_IMAGE_AT, pos: { x: gameObjects.aimPoint.pos.x - 20, y: gameObjects.aimPoint.pos.y - 15 }, color: commonColors.white, imageQuad: {x: 0, y: 0, w: images["tail"].size.x, h: images["tail"].size.y}, size: 1, rotation: 0, id: "tail" })
 
     let prevControlTimeout = gameObjects.controlTimmeout;
@@ -1122,9 +1126,18 @@ function stepAimPoint(dt) {
         )
     }
 
-    if (amplitude <= targetRadious) {
+    let onTarget = (amplitude <= targetRadious);
+
+    if (onTarget) {
         __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: commonColors.green, size: gameObjects.aimPoint.size })
-        if (inputTapDetected()) {
+        gameObjects.lagCompensationTimmer = aimPointSettup.lagCompensation;
+    }
+    else {
+        __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
+    }
+        
+    if (inputTapDetected()) {
+        if (onTarget || gameObjects.lagCompensationTimmer > 0) {
             //console.log("Goal!!")
             gameObjects.score++;
             gameObjects.hitsInARow++;
@@ -1206,10 +1219,7 @@ function stepAimPoint(dt) {
                 );
             }
         }
-    }
-    else {
-        __renderActions.actions.push({ type: RENDERACTIONTYPE.RAT_POINT_AT, pos: gameObjects.aimPoint.pos, color: gameObjects.aimPoint.color, size: gameObjects.aimPoint.size })
-        if (inputTapDetected()) {
+        else {
             gameObjects.hitsInARow = 0;
             gameObjects.deadControlTime = inGameSetup.controlIgnoreTime;
             gameObjects.controlTimmeout = inGameSetup.controlEventTimeout;
