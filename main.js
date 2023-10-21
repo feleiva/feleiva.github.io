@@ -855,7 +855,9 @@ FSMRegisterState(GAMESTATES.GS_IN_GAME,
         stepAimPoint(dt);
         stepHud(dt);
     }, // OnStep
-    () => { }, //OnExit
+    () => { 
+        
+    }, //OnExit
 )
 
 FSMRegisterState(GAMESTATES.GS_FINISHED,
@@ -929,6 +931,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
     }, // OnStep
     () => {
         clearGameObjects();
+        resouceSoundStop(sounds['inGameMusic']);
         //resouceSoundStop(sounds['inGameMusic']);
     }, //OnExit
 )
@@ -1029,7 +1032,7 @@ FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
     }, // OnStep
     () => {
         clearGameObjects();
-        resouceSoundStop(sounds['inGameMusic']);
+        resouceSoundStop(sounds['outGameMusic']);
     }, //OnExit
 )
 
