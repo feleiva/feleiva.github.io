@@ -486,7 +486,7 @@ var sounds = {
         filePath: "sound/IAmOnMyWay.mp3",
         loop: true,
         singleInstance: true,
-        volume: 0.1,
+        volume: 0.2,
         buffer: null,
         soundNode: null
     },
@@ -494,7 +494,7 @@ var sounds = {
         filePath: "sound/ImABeleiver.mp3",
         loop: true,
         singleInstance: true,
-        volume: 0.1,
+        volume: 0.2,
         buffer: null,
         soundNode: null
     }
@@ -936,6 +936,7 @@ FSMRegisterState(GAMESTATES.GS_FINISHED,
 FSMRegisterState(GAMESTATES.GS_LEADERBOARD,
     () => {
         setDarkVeil(false);
+        resouceSoundPlay(sounds['outGameMusic']);
         gameObjects.onScreenTimmer = 0;
         gameObjects.objects.push(
             {
