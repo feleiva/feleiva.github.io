@@ -17,6 +17,14 @@
             color: #333;
         }
 
+        h2 {
+            text-align: left;
+            color: #333;
+            font-weight: bold;
+            margin-block-start: 0.3em;
+            margin-block-end: 0.3em;
+        }
+
         input[type="text"] {
             width: 100%;
             padding: 10px;
@@ -38,7 +46,7 @@
             border: 1px solid #ddd;
             padding: 12px;
             text-align: left;
-            vertical-align: bottom;
+            vertical-align: middle;
         }
 
         th {
@@ -214,7 +222,9 @@
             imageCell.appendChild(newImage);
             imageCell.rowSpan = 3;
             var brandCell = firstRow.insertCell();
-            brandCell.innerHTML = imgData.brand;
+            var bottleBrand = document.createElement('h2');
+            bottleBrand.innerHTML = imgData.brand;
+            brandCell.appendChild(bottleBrand);
 
             // Second Row with the type
             var secondRow = myTable.insertRow();
