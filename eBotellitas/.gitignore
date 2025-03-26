@@ -1,0 +1,5 @@
+# ignore the venv folder
+venv/
+
+# ignore the source images used
+SourceImages/

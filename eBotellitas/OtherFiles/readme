@@ -1,0 +1,16 @@
+Comando usado para hacer crop, usando image magic
+ls -a | sort | grep JPG | xargs -I{} convert {} -crop 2848x2736+400+0 cropped/{}
+find . -maxdepth 1 -type f -name "*.JPG" |  xargs -I{} convert {} -crop 2848x2736+400+0 cropped/{}
+
+Comando usado para hacer smart crop, funciona, pero no quedan bien centrados
+ls -a | sort | grep JPG | xargs -I{} smartcroppy --width 2048 --height 2048  {} cropped/{}
+
+Referencia para usar el venv de Python
+https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/
+
+source venv/bin/activate para activar
+deactivate para desactivar el venv
+
+
+https://pypi.org/project/image-similarity-measures/
+
