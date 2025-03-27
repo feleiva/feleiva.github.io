@@ -32,7 +32,7 @@ const FUSEOptions = {
 var fuseHandle = null;
 
 async function SearchSetup() {
-    const response = await fetch('../jsondb/fileDictionary.json');
+    const response = await fetch('./jsondb/fileDictionary.json');
     JSONData = await response.json();
 
     // Sort the JSON array by the 'type' attribute
@@ -56,7 +56,7 @@ function AddCard(cardContainer, imgData) {
     // Create the image element
     const cardImage = document.createElement('img');
     cardImage.classList.add('card-image');
-    cardImage.src = ".\\thumbs\\" + imgData.file;
+    cardImage.src = "./thumbs/" + imgData.file;
     cardImage.alt = imgData.brand + " - " +imgData.type;
 
     // Add a click event to the image
@@ -64,7 +64,7 @@ function AddCard(cardContainer, imgData) {
 
         const imagePath = cardImage.src;
         const segments = imagePath.split('/');
-        const newPath = ".\\imgs\\" + segments[segments.length - 1];
+        const newPath = "./imgs/" + segments[segments.length - 1];
 
         const newWindow = window.open('', '_blank');
         if (newWindow) {
