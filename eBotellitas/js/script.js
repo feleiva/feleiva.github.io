@@ -37,11 +37,9 @@ async function SearchSetup() {
 
     // Sort the JSON array by the 'type' attribute
     JSONData.sort((a, b) => {
-        if (a.type < b.type) return -1;
-        else if (a.type > b.type) return 1;
-        else if (a.brand < b.brand) return -1;
-        else if (a.brand > b.brand) return 1;
-        return 0;
+        const typeComp = a.type.localeCompare(b.type)
+        if (typeComp == 0) return a.brand.localeCompare(b.brand);
+        return typeComp;
     });
 
     fuseHandle = new Fuse(JSONData, FUSEOptions);
