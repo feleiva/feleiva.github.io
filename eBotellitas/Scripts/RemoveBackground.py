@@ -43,6 +43,7 @@ def clean_jpg_files(source_dir, destination_dir):
                 else:
                     output.save(destination_path)
                 count += 1
+                print(f"Processed {destination_path}")
             except OSError as e:
                 print(f"Error removing background on '{filename}': {e}")
     print(f"Processed {count} JPG file(s) from '{source_dir}' to '{destination_dir}'.")

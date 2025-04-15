@@ -8,6 +8,8 @@ from PIL import Image
 from google import genai
 from pydantic import BaseModel
 
+MAX_RETRIES = 5
+
 class Bottle(BaseModel):
   brand: str
   type: str
@@ -28,14 +30,18 @@ def create_bottle_list(image_dir):
 
     prompt = "Please identify the bottle on this image and provide me the brand, type and a description with all the info you can extract"
 
+    #response = client.models.list(config={'page_size': 100})
+    #print(f"Available models: {response.page}")
+    #return
+
     for image_path in image_paths:
-        retry_count = 3
+        retry_count = MAX_RETRIES
         while(retry_count > 0):
             try:
                 img = Image.open(image_path)
 
                 response = client.models.generate_content(
-                    model='gemini-2.5-pro-experimental-03-25', # Check model name, this may not work when you run this
+                    model='gemini-2.0-flash', # Check model name, this may not work when you run this
                     contents=[prompt, img],
                     config={
                         'response_mime_type': 'application/json',
@@ -51,7 +57,9 @@ def create_bottle_list(image_dir):
             except Exception as e:
                 print(f"Error processing {image_path}: {e}")
                 retry_count-=1
-                sleep(10)
+                sleep(10 * (MAX_RETRIES-retry_count))  # Exponential backoff
+                if retry_count > 0:
+                    print(f"Retrying {image_path}... {3-retry_count} retries left.")
                 if retry_count == 0:
                     print(f"Failed to process {image_path} after 3 retries.")
                     image_list.append({"file": image_path, "brand": "PROCESS ERROR", "type": "PROCESS ERROR", "description": "PROCESS ERROR"})

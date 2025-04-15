@@ -2512,5 +2512,179 @@
     "brand": "La Blanco",
     "type": "Pisco",
     "description": "This is a bottle of La Blanco Pisco, a Peruvian spirit. The bottle is 50ml and has a 41% alcohol content by volume. The label is green and features a stylized hummingbird design."
+  },
+  {
+    "brand": "Martini",
+    "type": "Vermouth",
+    "description": "Martini Rosso Vermouth. It has 15% alcohol. The bottle is 60ml. It is an aperitivo. Casa fondata in Italia",
+    "file": "IMG20250414184941.png"
+  },
+  {
+    "brand": "Campari",
+    "type": "Bitter",
+    "description": "This is a bottle of Campari bitter, an Italian alcoholic liqueur. The label indicates it has been made since 1860 by Davide Campari-Milano. The bottle has a gold screw top.",
+    "file": "IMG20250414185008.png"
+  },
+  {
+    "brand": "Martini",
+    "type": "Bianco Vermouth",
+    "description": "A 60ml bottle of Martini Bianco Vermouth. It has an alcohol content of 15% alc./vol. The label states it is 'L'Aperitivo', from a 'Casa fondata in Italia' (house founded in Italy) since 1863. Bottle has a barcode and reference IVV025.",
+    "file": "IMG20250414185020.png"
+  },
+  {
+    "brand": "Clontarf",
+    "type": "Classic Blend Irish Whiskey",
+    "description": "This is a bottle of Clontarf Classic Blend Irish Whiskey. It is distilled in Ireland using Irish spring water and the finest grain. The bottle indicates 40% Alc/Vol and 50ml.",
+    "file": "IMG20250414185042.png"
+  },
+  {
+    "brand": "Tipitochi",
+    "type": "Agave Distillate",
+    "description": "This is a bottle of Tipitochi Agave Distillate, with 38% alcohol by volume. It is made in Mexico. The label features an image of a pyramid and the sun.",
+    "file": "IMG20250414185110.png"
+  },
+  {
+    "brand": "Bottega",
+    "type": "Distilled Dry Gin Bacur",
+    "description": "This is a bottle of Bottega Distilled Dry Gin Bacur, a spirit produced by the Bottega Family Distillers since 1967. The bottle is copper-colored and features an image of juniper berries on the label.",
+    "file": "IMG20250414185136.png"
+  },
+  {
+    "brand": "Edinburgh Gin",
+    "type": "Navy Strength Cannonball Gin",
+    "description": "This is a bottle of Edinburgh Gin Navy Strength Cannonball Gin. It is a small batch distilled gin made with the finest botanicals of Scotland. The bottle contains 5cl and has an alcohol content of 57.2% by volume. It is produced by The Spencerfield Spirit Co.",
+    "file": "IMG20250414185147.png"
+  },
+  {
+    "brand": "Edinburgh Gin Distillery",
+    "type": "The Classic Gin",
+    "description": "Small batch distilled gin, made with the finest botanicals of Scotland by Spencerfield Spirit Co. 5cl, 43% Vol",
+    "file": "IMG20250414185157.png"
+  },
+  {
+    "brand": "Campari",
+    "type": "Bitter",
+    "description": "This is a miniature bottle of Campari Bitter, an Italian aperitivo. The label reads 'G. Campari, Fratelli Campari Successori, Milano, Italy'. The bottle is filled with a red liquid and has a golden cap.",
+    "file": "IMG20250414185224.png"
+  },
+  {
+    "brand": "Grand Marnier",
+    "type": "Liqueur",
+    "description": "Grand Marnier is a French liqueur made with cognac, distilled bitter orange essence, and sugar. It was founded in 1827 and is produced by Soci\u00e9t\u00e9 des Produits Marnier Lapostolle in Paris. The bottle in the image is a 50ml bottle with 40% alcohol by volume.",
+    "file": "IMG20250414185232.png"
+  },
+  {
+    "brand": "Jack Daniel's",
+    "type": "Gentleman Jack Double Mellowed Tennessee Whiskey",
+    "description": "A 5cl bottle of Jack Daniel's Gentleman Jack Double Mellowed Tennessee Whiskey. It is distilled and bottled by Jack Daniel Distillery in Lynchburg, TN, USA. It has a 40% alcohol by volume.",
+    "file": "IMG20250414185241.png"
+  },
+  {
+    "brand": "Chivas Regal",
+    "type": "Blended Scotch Whisky",
+    "description": "A miniature bottle of Chivas Regal 12 year old Blended Scotch Whisky. Product of Scotland. 50ml, 40% alc./vol.",
+    "file": "IMG20250414185253.png"
+  },
+  {
+    "brand": "ENGINE",
+    "type": "Italian Organic Gin",
+    "description": "A 50ml bottle of ENGINE Italian Organic Gin, bottled at 42% vol. The bottle design features a white label with a red stripe and blue bottom. It also features the logo 'ENGINE' in a red box on the white label.",
+    "file": "IMG20250414185313.png"
+  },
+  {
+    "brand": "William Lawson's",
+    "type": "Rare Blended Scotch Whisky",
+    "description": "A bottle of William Lawson's Rare Blended Scotch Whisky, bottled in Scotland by William Lawson Distillers Ltd., Coatbridge and Macduff, Scotland. It is 4.7 CL and 100% Scotch Whiskies and 43 degrees, under British Government Supervision.",
+    "file": "IMG20250414185343.png"
+  },
+  {
+    "brand": "Gusanos de Oaxaca",
+    "type": "Mezcal with worm",
+    "description": "Mezcal produced in Mexico from mature agave. The bottle contains 50 ml of Mezcal with 38% alc. Vol.",
+    "file": "IMG20250414185352.png"
+  },
+  {
+    "brand": "Courvoisier",
+    "type": "Cognac V.S. (Very Special)",
+    "description": "A 50mL miniature bottle of Courvoisier V.S. Cognac, a product of France, with an alcohol content of 40% Alc/Vol.",
+    "file": "IMG20250414185400.png"
+  },
+  {
+    "brand": "Courvoisier",
+    "type": "VS Cognac",
+    "description": "Miniature bottle of Courvoisier V.S. Cognac. Product of France.",
+    "file": "IMG20250414185410.png"
+  },
+  {
+    "brand": "High Commissioner",
+    "type": "Blended Scotch Whisky",
+    "description": "This is a miniature bottle of High Commissioner Blended Scotch Whisky. It is established in 1856, according to the label, made by the Loch Lomond Group. It is distilled, blended & bottled in Scotland. This bottle won a Silver Quality Award at the International Wine & Spirit Competition in 2016 and has 40% alcohol by volume.",
+    "file": "IMG20250414185433.png"
+  },
+  {
+    "brand": "Magia Negra",
+    "type": "Destilado de Agave",
+    "description": "A bottle of Magia Negra Destilado de Agave, it contains 60 ml and has 38% alcohol. It is made in Mexico, and the label warns that its consumption is harmful to health.",
+    "file": "IMG20250414185440.png"
+  },
+  {
+    "brand": "Don Chinto",
+    "type": "Silver Tequila",
+    "description": "A 50ml bottle of Don Chinto Silver Tequila, with 38% alcohol by volume. It's labeled as 'Envasado de Origen' (Bottled at Origin) and 'Hecho en Mexico' (Made in Mexico). The NOM number is 1479 CRT, and it carries a Kosher certification.",
+    "file": "IMG20250414185447.png"
+  },
+  {
+    "brand": "Dos Gusanos",
+    "type": "Agave Espadin",
+    "description": "This is a 50ml bottle of Dos Gusanos agave spirit, with 38% alcohol by volume. The label indicates that it is 'Destilado de Agave' and contains 'un gusano de maguey genuino' (a genuine maguey worm). It is labeled as '100% leg\u00edtimo de Oaxaca' and 'Agave Espadin'. The product is 'Hecho en Mexico'. The label also includes the warning 'El abuso en el consumo de este producto es nocivo para la salud' (Abuse in the consumption of this product is harmful to your health).",
+    "file": "IMG20250414185456.png"
+  },
+  {
+    "brand": "Stolichnaya",
+    "type": "Vodka",
+    "description": "A bottle of Stolichnaya Vodka, established in 1938. It is made with certified alpha grade spirit. The bottle contains 0.05L and has a 40% alcohol volume. The label indicates it is an imported product.",
+    "file": "IMG20250414185514.png"
+  },
+  {
+    "brand": "Taylor Fladgate",
+    "type": "Late Bottled Vintage Port",
+    "description": "This is a bottle of Taylor Fladgate Late Bottled Vintage Port, from the year 2015. It was bottled by Quinta and Vineyard Bottlers Vinhos S.A. and it's a product of Portugal. It has an ABV of 20%.",
+    "file": "IMG20250414185524.png"
+  },
+  {
+    "brand": "The London N\u00b01",
+    "type": "Original Blue Gin",
+    "description": "The bottle contains 'The London N\u00b01 Original Blue Gin'. The label mentions it is 'specially crafted by our master distiller in small batches. A traditional and elegant gin made in London'.",
+    "file": "IMG20250414185533.png"
+  },
+  {
+    "brand": "Licor Bruja",
+    "type": "Limoncello",
+    "description": "This is a bottle of Licor Bruja Limoncello, a fine lemon liqueur. It's a digestif made by Virgilio Brusco & Hijos, fabricated in Chile with 34' GL. The bottle features a witch illustration.",
+    "file": "IMG20250414185542.png"
+  },
+  {
+    "brand": "Skibo Castle",
+    "type": "Highland Single Malt Scotch Whisky",
+    "description": "This is a miniature bottle of Skibo Castle Highland Single Malt Scotch Whisky, aged 10 years, with a volume of 5cl and 40% alcohol. It is distilled, matured and bottled in Scotland by Balblair Distillery, Edderton IV19 1LB.",
+    "file": "IMG20250414185602.png"
+  },
+  {
+    "brand": "Edinburgh Gin Distillery",
+    "type": "Elderflower Liqueur",
+    "description": "A bottle of Edinburgh Gin Distillery Elderflower Liqueur. It is a product of Scotland and contains 5cl with 20% Alc/Vol. The bottle has a silver cap and a clear glass body.",
+    "file": "IMG20250414185609.png"
+  },
+  {
+    "brand": "Havana Club",
+    "type": "Original A\u00f1ejo 3 A\u00f1os",
+    "description": "A miniature bottle of Havana Club Original A\u00f1ejo 3 A\u00f1os rum. It is a Cuban rum, as indicated by the text 'El Ron de Cuba' and 'Rum Made and Aged in Cuba'. The label also features the Cuban seal with the text 'Republica de Cuba Garantia'.",
+    "file": "IMG20250414185616.png"
+  },
+  {
+    "brand": "Monkey Shoulder",
+    "type": "Blended Malt Scotch Whisky",
+    "description": "Batch 27 Smooth and Rich. Rooted in malt whisky history, and inspired by the malt men who still turn the malting barley by hand, 'Monkey Shoulder' is blended in small batches of three fine Speyside single malts then married to achieve a smoother, richer taste. Selected by our Malt Master. Distilled, matured & bottled in Scotland by William Grant & Sons Ltd, family owned since 1887. 40% alc/vol.",
+    "file": "IMG20250414185623.png"
   }
 ]
